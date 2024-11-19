@@ -534,7 +534,7 @@
             this.btnColorFill.Name = "btnColorFill";
             this.btnColorFill.Size = new System.Drawing.Size(61, 74);
             this.btnColorFill.TabIndex = 10;
-            this.btnColorFill.Text = "Fill";
+            this.btnColorFill.Text = "Fill nè con";
             this.btnColorFill.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnColorFill.UseVisualStyleBackColor = false;
             this.btnColorFill.Click += new System.EventHandler(this.btn_Click);
