@@ -206,5 +206,68 @@
   <ItemGroup>
     <None Include="Resources\4pointstar12.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layers1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\noun-dashed-rectangle1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\noun-dashed-rectangle11.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\noun-dotted-rectangle1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\noun-dotted-rectangle11.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\vecteezy_mouse-cursor-symbol-on-transparent-background_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\vecteezy_mouse-cursor-symbol-on-transparent-background_11.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pnghut_arrow-clip-art-black-and-white-down1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pnghut_arrow-clip-art-black-and-white-down11.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\1604761.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\open1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\openfile1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\freeform1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Pen-021.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Pen-0211.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\rotate11.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\rotate21.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\rotate180-1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\flipvertical.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\flipvertical1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\crop1.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
