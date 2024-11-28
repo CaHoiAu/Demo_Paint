@@ -15,52 +15,63 @@ namespace Demo_Paint
         public Form1()
         {
             InitializeComponent();
+            bm = new Bitmap(canvas.Width, canvas.Height);
+            g = Graphics.FromImage(bm);
+            g.Clear(Color.White);
+            canvas.Image = bm;
         }
+        Bitmap bm;
+        Graphics g;
+        bool paint = false;
+        Point px, py;
+        Pen p = new Pen(Color.Black, 1);
+        int index = 1;
+        private void canvas_MouseDown(object sender, MouseEventArgs e)
+        {
+            paint = true;
+            py = e.Location;
 
+        }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
             string s;
             s = e.X.ToString() + ", " + e.Y.ToString() + "px";
             toolStripStatusLabel2.Text = s;
+
+            if (paint)
+            {
+                if (index == 1)
+                {
+                    px = e.Location;
+                    g.DrawLine(p, px, py);
+                    py = px;
+                }
+            }
+            canvas.Invalidate();
+        }
+        private void canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            paint = false;
         }
 
         private void canvas_MouseLeave(object sender, EventArgs e)
         {
             toolStripStatusLabel2.Text = "";
         }
-        private void btn_MouseDown(object sender, MouseEventArgs e)
+
+        private void btnPen_Click(object sender, EventArgs e)
         {
-            Button btn = sender as Button;
-            if (btn != null)
-            {
-                btn.FlatAppearance.BorderSize = 1; // Thêm viền khi nhấn
-                btn.FlatAppearance.BorderColor = Color.Gray; // Màu viền khi nhấn
-                btn.BackColor = Color.LightGray; // Màu nền khi nhấn
-            }
+            index = 1;
         }
 
-        private void btn_Click(object sender, EventArgs e)
+        private void canvas_Click(object sender, EventArgs e)
         {
-            // Lấy nút vừa được nhấn
-            Button clickedBtn = sender as Button;
 
-            // Kiểm tra xem nút không null
-            if (clickedBtn == null)
-                return;
+        }
 
-            foreach (Control ctrl in panel1.Controls)
-            {
-                if (ctrl is Button btn)
-                {
-                    btn.FlatAppearance.BorderSize = 0; // Loại bỏ viền
-                    btn.BackColor = Color.White; // Màu nền mặc định
-                }
-            }
+        private void Form1_Load(object sender, EventArgs e)
+        {
 
-            // Đặt trạng thái đặc biệt cho nút vừa nhấn
-            clickedBtn.FlatAppearance.BorderSize = 1; // Thêm viền
-            clickedBtn.FlatAppearance.BorderColor = Color.LightGray; // Màu viền đặc biệt
-            clickedBtn.BackColor = Color.LightGray; // Màu nền đặc biệt
         }
     }
 }
