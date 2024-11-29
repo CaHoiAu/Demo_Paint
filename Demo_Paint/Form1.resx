@@ -139,18 +139,18 @@
   <data name="toolStripbtnSplit.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAYAAABG1c6oAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJ+SURBVDhPjZS7axRRFMZnfIHERkQlPjDaGFGw8AVusex7
-        Z4et3BUfkbUIS/4BwUTMgjamiilUREEwhX9DLExjKhtFRRtfiBIFFazEaMbft3M2ziQ70Q8+7rnn8d1z
-        HzNOEnzfP1AsFm/l8/n3hULhp/EtvolKpbLH0v6NZrO5ulQqDeVyuTcIPEFgjLGB7yzjeDabfcEiL8vl
-        8gnl4+8jp79dvBjpdHoVySOMXyREcq+FFkB3O4hdQ3yWcRROYQ9YOA6CBcQ+IXSu1WqtMLdDV1tFm7YX
-        JneCxQOR3Zy2UBzqiMRjtVptrbkEF7Hromw5ON9dCN2Hc6lU6gex9vb/GyyyX7SpwxZ30pWPkCcivMVC
-        jsPhbjQzERRURJsmQp1rtWlWP2q+bnARGxNlh66lQKNM14+1eoDoOxynohcRBSuvF20aQ71eX8nZD7L1
-        z9JqCxq/IzpKwjrL7UAdXhJlh64QNNJDzWXGD8RnuKBfUcGA5/CbhEm43WoEl4K6KDt0hS8C3106+4h9
-        Bruh+phghyQ9RPSw1TqZTGa3aFMdwT4EpuErxHz59Bapne8qKOrTI/m4zhX7hkidy0LoFJ7DR7yQQxIT
-        mA9QlyyoB0vxBTv0PlFfCOMV4vPErhJbY3rLCxKcpXBQAkqmu4ZohT1wWLeK6O1qtbrZ/N0FSXyqbSnJ
-        oFseEWXLEQSBy3brnOtr/A/I72c8CeOCdDFFZ3tVFAX+DaJNF+B53kHqZuAz4neiz2YO3qTtTZYbhUvy
-        uCg7dP0FnW6jw0nTCLT6VxznF/1hYuAYMqJNl8DO9SL81v4Gkz65Dkg8Itq0K/QaOALPpstCl3JPlB26
-        kuA4fwCXGDlG4bML6AAAAABJRU5ErkJggg==
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJ9SURBVDhPjZS7axRRFMZnogYkNiIqvjDaGFGw8MXaLPve
+        2WUrd8VHZC3Ckn9A0IhZ0MZUMYWKKAim8G+IhWlMZaOoaOMLUaKggpUYzfj7Zs7GmWQn+sHHPfc8vnvu
+        Y8ZJQrVa3V8sFm/l8/n3hULhp/EtvolKpbLb0v6NVqu1qlQqDedyuTcIPEFgjLGJ7wzjeDabfcEiL8vl
+        8nHl4+8nZyAoXox0Or2S5BHGLxIieZOFFkB324ldQ3yWcRROYQ9aOA6CBcQ+IXS23W73mNuhqy2iTYOF
+        yZ1gcV9kN6csFIc6IvFovV5fbS7BRey6KFsOzncnQvfhXCqV+kEs2P5/g0X2iTZ12OIOuqoi5IkIb7aQ
+        43C4681MBAUV0aaJUOdabZrVj5ivG1zExkTZoWsp0CjT9WOt7iP6DsfJ6EVEwcprRZvG0Gg0VnD2Q2z9
+        s7QCQeN3REdJWGO5HajDS6Ls0BWCRvqoucz4gfgMF/QrKujzHH6TMAm3WY3gUtAQZYeu8EXgu0tnH7FP
+        YzdVHxPskKSHiB6yWieTyewSbaoj2IvANHyFWFU+vUVq57sKivr0SD6mc8W+IVLnshA6hefwES/koMQE
+        5oPUJQvqwVJ8wQ69X9QXwniF+Dyxq8R6TW95QYKzFA5JQMl01xStsA+e160iertWq200f3dBEp9qW0oy
+        6JZHRNly+L7vst0G5/oa/wPyBxhPwLggXUzR2R4VRYF/nWjTBXied4C6GfiM+J3os5mDN2l7g+VG4ZI8
+        LsoOXX9Bp1vpcNI0fK3+Fce5RX+YGDiGjGjTJbBzvQi/Bd9g0ifXAYmHRZt2hV4DR+DZdFnoUu6JskNX
+        EhznD00sOS7hbCPxAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="toolStripbtnRotateRight.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

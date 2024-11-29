@@ -60,6 +60,8 @@
             this.btnRedo = new System.Windows.Forms.Button();
             this.btnUndo = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.numUD_Size = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
             this.toolStrip4 = new System.Windows.Forms.ToolStrip();
             this.toolStripbtnSplit = new System.Windows.Forms.ToolStripSplitButton();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripMenuItem();
@@ -99,17 +101,15 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.canvas = new System.Windows.Forms.PictureBox();
-            this.numUD_Pen = new System.Windows.Forms.NumericUpDown();
-            this.label6 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numUD_Size)).BeginInit();
             this.toolStrip4.SuspendLayout();
             this.toolStrip3.SuspendLayout();
             this.toolStripBrushes.SuspendLayout();
             this.toolStripSelect.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUD_Pen)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -416,6 +416,7 @@
             this.btnEraser.TabIndex = 11;
             this.tooltip.SetToolTip(this.btnEraser, "Eraser");
             this.btnEraser.UseVisualStyleBackColor = true;
+            this.btnEraser.Click += new System.EventHandler(this.btnEraser_Click);
             // 
             // btnRedo
             // 
@@ -446,7 +447,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.White;
-            this.panel1.Controls.Add(this.numUD_Pen);
+            this.panel1.Controls.Add(this.numUD_Size);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.toolStrip4);
             this.panel1.Controls.Add(this.toolStrip3);
@@ -492,6 +493,28 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(913, 87);
             this.panel1.TabIndex = 3;
+            // 
+            // numUD_Size
+            // 
+            this.numUD_Size.Location = new System.Drawing.Point(632, 11);
+            this.numUD_Size.Name = "numUD_Size";
+            this.numUD_Size.Size = new System.Drawing.Size(70, 20);
+            this.numUD_Size.TabIndex = 6;
+            this.numUD_Size.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numUD_Size.ValueChanged += new System.EventHandler(this.numUD_Size_ValueChanged);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(601, 13);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(27, 13);
+            this.label6.TabIndex = 7;
+            this.label6.Text = "Size";
             // 
             // toolStrip4
             // 
@@ -893,27 +916,6 @@
             this.canvas.MouseMove += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseMove);
             this.canvas.MouseUp += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseUp);
             // 
-            // numUD_Pen
-            // 
-            this.numUD_Pen.Location = new System.Drawing.Point(632, 11);
-            this.numUD_Pen.Name = "numUD_Pen";
-            this.numUD_Pen.Size = new System.Drawing.Size(70, 20);
-            this.numUD_Pen.TabIndex = 6;
-            this.numUD_Pen.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(601, 13);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(27, 13);
-            this.label6.TabIndex = 7;
-            this.label6.Text = "Size";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -933,6 +935,7 @@
             this.menuStrip1.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numUD_Size)).EndInit();
             this.toolStrip4.ResumeLayout(false);
             this.toolStrip4.PerformLayout();
             this.toolStrip3.ResumeLayout(false);
@@ -944,7 +947,6 @@
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUD_Pen)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1021,8 +1023,8 @@
         private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
-        private System.Windows.Forms.NumericUpDown numUD_Pen;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.NumericUpDown numUD_Size;
     }
 }
 

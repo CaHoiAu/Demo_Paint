@@ -24,8 +24,9 @@ namespace Demo_Paint
         Graphics g;
         bool paint = false;
         Point px, py;
-        Pen p = new Pen(Color.Black, 1);
-        int index = 1;
+        int brushsize = 1;
+        int index;
+        
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
             paint = true;
@@ -42,8 +43,16 @@ namespace Demo_Paint
             {
                 if (index == 1)
                 {
+                    Pen p = new Pen(Color.Black, brushsize);
                     px = e.Location;
                     g.DrawLine(p, px, py);
+                    py = px;
+                }
+                if (index == 2)
+                {
+                    Pen eraser = new Pen(Color.White, brushsize);
+                    px = e.Location;
+                    g.DrawLine(eraser, px, py);
                     py = px;
                 }
             }
@@ -63,12 +72,18 @@ namespace Demo_Paint
         {
             index = 1;
         }
-
+        private void btnEraser_Click(object sender, EventArgs e)
+        {
+            index = 2;
+        }
+        private void numUD_Size_ValueChanged(object sender, EventArgs e)
+        {
+            brushsize = int.Parse(numUD_Size.Value.ToString());
+        }
         private void canvas_Click(object sender, EventArgs e)
         {
 
         }
-
         private void Form1_Load(object sender, EventArgs e)
         {
 
