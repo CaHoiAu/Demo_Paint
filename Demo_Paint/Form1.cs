@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,9 @@ namespace Demo_Paint
                 if (index == 1)
                 {
                     Pen p = new Pen(Color.Black, brushsize);
+                    p.StartCap = LineCap.Round;
+                    p.EndCap = LineCap.Round;
+                    p.LineJoin = LineJoin.Round;
                     px = e.Location;
                     g.DrawLine(p, px, py);
                     py = px;
@@ -51,6 +55,9 @@ namespace Demo_Paint
                 if (index == 2)
                 {
                     Pen eraser = new Pen(Color.White, brushsize);
+                    eraser.StartCap = LineCap.Round;
+                    eraser.EndCap = LineCap.Round;
+                    eraser.LineJoin = LineJoin.Round;
                     px = e.Location;
                     g.DrawLine(eraser, px, py);
                     py = px;
