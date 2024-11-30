@@ -46,6 +46,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Control\ColorBox2D.cs" />
+    <Compile Include="Control\ColorBox2D.Designer.cs">
+      <DependentUpon>ColorBox2D.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Control\ColorChangedEventArgs.cs" />
+    <Compile Include="Control\ColorModes.cs" />
+    <Compile Include="Control\ColorSlider.cs" />
+    <Compile Include="Control\GradientPanel.cs" />
+    <Compile Include="Control\HslColor.cs" />
+    <Compile Include="Control\MathExtensions.cs" />
+    <Compile Include="Control\NickButton.cs" />
+    <Compile Include="Control\NickRadioButton.cs" />
+    <Compile Include="Control\OpacityChangedEventArgs.cs" />
+    <Compile Include="Control\OpacitySlider.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,6 +68,15 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Control\ColorBox2D.resx">
+      <DependentUpon>ColorBox2D.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Control\ColorSlider.resx">
+      <DependentUpon>ColorSlider.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Control\OpacitySlider.resx">
+      <DependentUpon>OpacitySlider.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
