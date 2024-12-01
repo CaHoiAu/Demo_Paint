@@ -87,13 +87,16 @@ namespace Demo_Paint
         {
             brushsize = int.Parse(numUD_Size.Value.ToString());
         }
-        private void canvas_Click(object sender, EventArgs e)
+        private void btnColorFill_Click(object sender, EventArgs e)
         {
+            using (Form2 colorDialog = new Form2())
+            {
+                colorDialog.StartPosition = FormStartPosition.CenterParent;
+                if (colorDialog.ShowDialog() == DialogResult.OK)
+                {
 
-        }
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
+                }
+            }
         }
     }
 }
