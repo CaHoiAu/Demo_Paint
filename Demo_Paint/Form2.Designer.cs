@@ -34,6 +34,8 @@
             this.lbCustomColor = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numA = new System.Windows.Forms.NumericUpDown();
             this.nickButton16 = new ColorPicker.Controls.NickButton();
             this.nickButton15 = new ColorPicker.Controls.NickButton();
             this.nickButton14 = new ColorPicker.Controls.NickButton();
@@ -54,11 +56,14 @@
             this.opacitySlider1 = new ColorPicker.OpacitySlider();
             this.colorSlider1 = new ColorPicker.ColorSlider();
             this.colorBox2D1 = new ColorPicker.ColorBox2D();
+            this.radioH = new ColorPicker.Controls.NickRadioButton();
+            this.RadioS = new ColorPicker.Controls.NickRadioButton();
+            ((System.ComponentModel.ISupportInitialize)(this.numA)).BeginInit();
             this.SuspendLayout();
             // 
             // tbHex
             // 
-            this.tbHex.Location = new System.Drawing.Point(135, 351);
+            this.tbHex.Location = new System.Drawing.Point(57, 359);
             this.tbHex.Name = "tbHex";
             this.tbHex.Size = new System.Drawing.Size(125, 20);
             this.tbHex.TabIndex = 4;
@@ -66,7 +71,7 @@
             // lbHex
             // 
             this.lbHex.AutoSize = true;
-            this.lbHex.Location = new System.Drawing.Point(100, 354);
+            this.lbHex.Location = new System.Drawing.Point(22, 362);
             this.lbHex.Name = "lbHex";
             this.lbHex.Size = new System.Drawing.Size(29, 13);
             this.lbHex.TabIndex = 5;
@@ -80,7 +85,6 @@
             this.lbBasicColor.Size = new System.Drawing.Size(65, 13);
             this.lbBasicColor.TabIndex = 6;
             this.lbBasicColor.Text = "Basic Colors";
-            this.lbBasicColor.Click += new System.EventHandler(this.lbBasicColor_Click);
             // 
             // lbCustomColor
             // 
@@ -93,7 +97,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(42, 380);
+            this.btnOK.Location = new System.Drawing.Point(42, 395);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(128, 23);
             this.btnOK.TabIndex = 24;
@@ -102,12 +106,34 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(217, 380);
+            this.btnCancel.Location = new System.Drawing.Point(217, 395);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(128, 23);
             this.btnCancel.TabIndex = 25;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(217, 362);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(43, 13);
+            this.label1.TabIndex = 26;
+            this.label1.Text = "Opacity";
+            // 
+            // numA
+            // 
+            this.numA.Location = new System.Drawing.Point(266, 359);
+            this.numA.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.numA.Name = "numA";
+            this.numA.Size = new System.Drawing.Size(72, 20);
+            this.numA.TabIndex = 27;
+            this.numA.ValueChanged += new System.EventHandler(this.numA_ValueChanged);
             // 
             // nickButton16
             // 
@@ -403,6 +429,7 @@
             this.opacitySlider1.Orientation = ColorPicker.OpacitySlider.Direction.Horizontal;
             this.opacitySlider1.Size = new System.Drawing.Size(246, 32);
             this.opacitySlider1.TabIndex = 2;
+            this.opacitySlider1.OpacityChanged += new ColorPicker.OpacitySlider.OpacityChangedEventHandler(this.opacitySlider1_OpacityChanged);
             // 
             // colorSlider1
             // 
@@ -415,6 +442,7 @@
             this.colorSlider1.Orientation = ColorPicker.ColorSlider.Direction.Horizontal;
             this.colorSlider1.Size = new System.Drawing.Size(246, 32);
             this.colorSlider1.TabIndex = 1;
+            this.colorSlider1.ColorChanged += new ColorPicker.ColorSlider.ColorChangedEventHandler(this.colorSlider1_ColorChanged);
             // 
             // colorBox2D1
             // 
@@ -426,11 +454,45 @@
             this.colorBox2D1.Size = new System.Drawing.Size(310, 187);
             this.colorBox2D1.TabIndex = 0;
             // 
+            // radioH
+            // 
+            this.radioH.AutoSize = true;
+            this.radioH.CheckedColor = System.Drawing.Color.Gray;
+            this.radioH.HoverColor = System.Drawing.Color.White;
+            this.radioH.Location = new System.Drawing.Point(362, 12);
+            this.radioH.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioH.Name = "radioH";
+            this.radioH.Size = new System.Drawing.Size(45, 21);
+            this.radioH.TabIndex = 28;
+            this.radioH.TabStop = true;
+            this.radioH.Text = "H";
+            this.radioH.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioH.UseVisualStyleBackColor = true;
+            // 
+            // RadioS
+            // 
+            this.RadioS.AutoSize = true;
+            this.RadioS.CheckedColor = System.Drawing.Color.Gray;
+            this.RadioS.HoverColor = System.Drawing.Color.White;
+            this.RadioS.Location = new System.Drawing.Point(363, 39);
+            this.RadioS.MinimumSize = new System.Drawing.Size(0, 21);
+            this.RadioS.Name = "RadioS";
+            this.RadioS.Size = new System.Drawing.Size(44, 21);
+            this.RadioS.TabIndex = 29;
+            this.RadioS.TabStop = true;
+            this.RadioS.Text = "S";
+            this.RadioS.UncheckedColor = System.Drawing.Color.Gray;
+            this.RadioS.UseVisualStyleBackColor = true;
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(385, 410);
+            this.ClientSize = new System.Drawing.Size(439, 430);
+            this.Controls.Add(this.RadioS);
+            this.Controls.Add(this.radioH);
+            this.Controls.Add(this.numA);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.nickButton16);
@@ -459,6 +521,7 @@
             this.Controls.Add(this.colorBox2D1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "Form2";
+            ((System.ComponentModel.ISupportInitialize)(this.numA)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -492,5 +555,9 @@
         private ColorPicker.Controls.NickButton nickButton16;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown numA;
+        private ColorPicker.Controls.NickRadioButton radioH;
+        private ColorPicker.Controls.NickRadioButton RadioS;
     }
 }

@@ -526,7 +526,7 @@
             this.toolStrip4.Location = new System.Drawing.Point(87, 38);
             this.toolStrip4.Name = "toolStrip4";
             this.toolStrip4.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.toolStrip4.Size = new System.Drawing.Size(39, 28);
+            this.toolStrip4.Size = new System.Drawing.Size(70, 28);
             this.toolStrip4.TabIndex = 34;
             this.toolStrip4.Text = "toolStrip4";
             // 
@@ -549,14 +549,14 @@
             // 
             this.toolStripMenuItem8.Image = global::Demo_Paint.Properties.Resources.flipvertical;
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(151, 22);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem8.Text = "Flip Horizontal";
             // 
             // toolStripMenuItem9
             // 
             this.toolStripMenuItem9.Image = global::Demo_Paint.Properties.Resources.flipvertical1;
             this.toolStripMenuItem9.Name = "toolStripMenuItem9";
-            this.toolStripMenuItem9.Size = new System.Drawing.Size(151, 22);
+            this.toolStripMenuItem9.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem9.Text = "Flip Vertical";
             // 
             // toolStrip3
@@ -593,21 +593,21 @@
             // 
             this.toolStripMenuItem5.Image = global::Demo_Paint.Properties.Resources.rotate11;
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(159, 22);
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem5.Text = "Rotate Right 90°";
             // 
             // toolStripMenuItem6
             // 
             this.toolStripMenuItem6.Image = global::Demo_Paint.Properties.Resources.rotate21;
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(159, 22);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem6.Text = "Rotate Left 90°";
             // 
             // toolStripMenuItem7
             // 
             this.toolStripMenuItem7.Image = global::Demo_Paint.Properties.Resources.rotate180_1;
             this.toolStripMenuItem7.Name = "toolStripMenuItem7";
-            this.toolStripMenuItem7.Size = new System.Drawing.Size(159, 22);
+            this.toolStripMenuItem7.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem7.Text = "Rotate 180°";
             // 
             // panel8
