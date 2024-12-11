@@ -1,4 +1,5 @@
 ﻿using ColorPicker;
+using ColorPicker.Controls;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,7 @@ namespace Demo_Paint
 {
     public partial class Form2 : Form
     {
+        public Color selectedColor { get; set; }
         private HslColor colorHsl = HslColor.FromAhsl(255);
         private ColorModes colorMode = ColorModes.Hue;
         private Color colorArgb = Color.FromArgb(255, Color.Crimson);
@@ -44,10 +46,6 @@ namespace Demo_Paint
             string hexValueB = colorArgb.B.ToString("X2");
             tbHex.Text = hexValueA.ToString() + hexValueR.ToString() + hexValueG.ToString() + hexValueB.ToString();
             gradientPanel1.Invalidate();
-        }
-        private void lbBasicColor_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void UpdateColorFields()
@@ -88,16 +86,6 @@ namespace Demo_Paint
             lockUpdates = false;
             colorSlider1.ColorHSL = colorHsl;
             colorBox2D1.ColorHSL = colorHsl;
-        }
-
-        private void numA_ValueChanged(object sender, EventArgs e)
-        {
-            if (!lockUpdates)
-            {
-                colorArgb = (Color.FromArgb((int)numA.Value, colorArgb));
-                opacitySlider1.Alpha = colorArgb.A;
-                UpdateGradientPanel();
-            }
         }
         private void numRed_ValueChanged(object sender, EventArgs e)
         {
@@ -159,10 +147,6 @@ namespace Demo_Paint
             }
         }
 
-        private void gradientPanel1_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void ColorModeChangedHandler(object sender, EventArgs e)
         {
@@ -327,6 +311,7 @@ namespace Demo_Paint
         {
             if (sender is Button btn)
             {
+                numA.Value = 255;
                 //RGB
                 numRed.Value = btn.BackColor.R;
                 numBlue.Value = btn.BackColor.B;
@@ -342,11 +327,6 @@ namespace Demo_Paint
                 // Kiểm tra nếu giá trị trong TextBox có dạng HEX hợp lệ (8 ký tự #RRGGBBAA)
                 if (tb.Text.Length == 9 && tb.Text.StartsWith("#"))
                 {
-                    // Chuyển HEX sang HSL và cập nhật các trường HSL
-                    var (h, s, l) = ColorUtils.HexToHsl(tb.Text);
-                    numHue.Value = (decimal)Math.Round(h);            // Cập nhật Hue (0-360)
-                    numSaturation.Value = (decimal)Math.Round(s);     // Cập nhật Saturation (0-100)
-                    numLuminance.Value = (decimal)Math.Round(l);      // Cập nhật Luminance (0-100)
 
                     // Cập nhật giá trị RGB từ HEX
                     var (r, g, b, a) = ColorUtils.HexToRgba(tb.Text);  // Cập nhật thêm giá trị Alpha
@@ -363,5 +343,22 @@ namespace Demo_Paint
                 }
             }
         }
+
+        private void numA_ValueChanged_1(object sender, EventArgs e)
+        {
+            if (!lockUpdates)
+            {
+                colorArgb = (Color.FromArgb((int)numA.Value, colorArgb));
+                opacitySlider1.Alpha = colorArgb.A;
+                UpdateGradientPanel();
+            }
         }
+
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+            selectedColor = colorArgb;
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+    }
 }

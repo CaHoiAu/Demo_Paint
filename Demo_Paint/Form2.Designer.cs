@@ -32,7 +32,6 @@
             this.tbHex = new System.Windows.Forms.TextBox();
             this.lbHex = new System.Windows.Forms.Label();
             this.lbBasicColor = new System.Windows.Forms.Label();
-            this.lbCustomColor = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -53,16 +52,8 @@
             this.radioL = new ColorPicker.Controls.NickRadioButton();
             this.radioS = new ColorPicker.Controls.NickRadioButton();
             this.radioH = new ColorPicker.Controls.NickRadioButton();
-            this.nickButton16 = new ColorPicker.Controls.NickButton();
-            this.nickButton15 = new ColorPicker.Controls.NickButton();
             this.nickButton14 = new ColorPicker.Controls.NickButton();
             this.nickButton13 = new ColorPicker.Controls.NickButton();
-            this.nickButton12 = new ColorPicker.Controls.NickButton();
-            this.nickButton11 = new ColorPicker.Controls.NickButton();
-            this.nickButton10 = new ColorPicker.Controls.NickButton();
-            this.nickButton9 = new ColorPicker.Controls.NickButton();
-            this.nickButton8 = new ColorPicker.Controls.NickButton();
-            this.nickButton7 = new ColorPicker.Controls.NickButton();
             this.nickButton6 = new ColorPicker.Controls.NickButton();
             this.nickButton5 = new ColorPicker.Controls.NickButton();
             this.nickButton4 = new ColorPicker.Controls.NickButton();
@@ -84,7 +75,7 @@
             // 
             // tbHex
             // 
-            this.tbHex.Location = new System.Drawing.Point(190, 355);
+            this.tbHex.Location = new System.Drawing.Point(324, 290);
             this.tbHex.MaxLength = 9;
             this.tbHex.Name = "tbHex";
             this.tbHex.Size = new System.Drawing.Size(125, 20);
@@ -94,7 +85,7 @@
             // lbHex
             // 
             this.lbHex.AutoSize = true;
-            this.lbHex.Location = new System.Drawing.Point(155, 358);
+            this.lbHex.Location = new System.Drawing.Point(289, 293);
             this.lbHex.Name = "lbHex";
             this.lbHex.Size = new System.Drawing.Size(29, 13);
             this.lbHex.TabIndex = 5;
@@ -109,27 +100,19 @@
             this.lbBasicColor.TabIndex = 6;
             this.lbBasicColor.Text = "Basic Colors";
             // 
-            // lbCustomColor
-            // 
-            this.lbCustomColor.AutoSize = true;
-            this.lbCustomColor.Location = new System.Drawing.Point(347, 274);
-            this.lbCustomColor.Name = "lbCustomColor";
-            this.lbCustomColor.Size = new System.Drawing.Size(74, 13);
-            this.lbCustomColor.TabIndex = 13;
-            this.lbCustomColor.Text = "Custom Colors";
-            // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(42, 395);
+            this.btnOK.Location = new System.Drawing.Point(42, 362);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(128, 23);
             this.btnOK.TabIndex = 24;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(324, 395);
+            this.btnCancel.Location = new System.Drawing.Point(324, 362);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(128, 23);
             this.btnCancel.TabIndex = 25;
@@ -156,6 +139,7 @@
             this.numA.Name = "numA";
             this.numA.Size = new System.Drawing.Size(58, 20);
             this.numA.TabIndex = 27;
+            this.numA.ValueChanged += new System.EventHandler(this.numA_ValueChanged_1);
             // 
             // numHue
             // 
@@ -348,40 +332,6 @@
             this.radioH.UseVisualStyleBackColor = true;
             this.radioH.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
             // 
-            // nickButton16
-            // 
-            this.nickButton16.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton16.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton16.BorderColor = System.Drawing.Color.Black;
-            this.nickButton16.BorderRadius = 20;
-            this.nickButton16.BorderSize = 1;
-            this.nickButton16.FlatAppearance.BorderSize = 0;
-            this.nickButton16.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton16.ForeColor = System.Drawing.Color.White;
-            this.nickButton16.Location = new System.Drawing.Point(335, 316);
-            this.nickButton16.Name = "nickButton16";
-            this.nickButton16.Size = new System.Drawing.Size(20, 20);
-            this.nickButton16.TabIndex = 23;
-            this.nickButton16.TextColor = System.Drawing.Color.White;
-            this.nickButton16.UseVisualStyleBackColor = false;
-            // 
-            // nickButton15
-            // 
-            this.nickButton15.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton15.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton15.BorderColor = System.Drawing.Color.Black;
-            this.nickButton15.BorderRadius = 20;
-            this.nickButton15.BorderSize = 1;
-            this.nickButton15.FlatAppearance.BorderSize = 0;
-            this.nickButton15.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton15.ForeColor = System.Drawing.Color.White;
-            this.nickButton15.Location = new System.Drawing.Point(335, 290);
-            this.nickButton15.Name = "nickButton15";
-            this.nickButton15.Size = new System.Drawing.Size(20, 20);
-            this.nickButton15.TabIndex = 22;
-            this.nickButton15.TextColor = System.Drawing.Color.White;
-            this.nickButton15.UseVisualStyleBackColor = false;
-            // 
             // nickButton14
             // 
             this.nickButton14.BackColor = System.Drawing.Color.MediumAquamarine;
@@ -419,108 +369,6 @@
             this.toolTip1.SetToolTip(this.nickButton13, "Dark Khaki");
             this.nickButton13.UseVisualStyleBackColor = false;
             this.nickButton13.Click += new System.EventHandler(this.basicColor_Click);
-            // 
-            // nickButton12
-            // 
-            this.nickButton12.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton12.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton12.BorderColor = System.Drawing.Color.Black;
-            this.nickButton12.BorderRadius = 20;
-            this.nickButton12.BorderSize = 1;
-            this.nickButton12.FlatAppearance.BorderSize = 0;
-            this.nickButton12.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton12.ForeColor = System.Drawing.Color.White;
-            this.nickButton12.Location = new System.Drawing.Point(413, 316);
-            this.nickButton12.Name = "nickButton12";
-            this.nickButton12.Size = new System.Drawing.Size(20, 20);
-            this.nickButton12.TabIndex = 19;
-            this.nickButton12.TextColor = System.Drawing.Color.White;
-            this.nickButton12.UseVisualStyleBackColor = false;
-            // 
-            // nickButton11
-            // 
-            this.nickButton11.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton11.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton11.BorderColor = System.Drawing.Color.Black;
-            this.nickButton11.BorderRadius = 20;
-            this.nickButton11.BorderSize = 1;
-            this.nickButton11.FlatAppearance.BorderSize = 0;
-            this.nickButton11.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton11.ForeColor = System.Drawing.Color.White;
-            this.nickButton11.Location = new System.Drawing.Point(387, 316);
-            this.nickButton11.Name = "nickButton11";
-            this.nickButton11.Size = new System.Drawing.Size(20, 20);
-            this.nickButton11.TabIndex = 18;
-            this.nickButton11.TextColor = System.Drawing.Color.White;
-            this.nickButton11.UseVisualStyleBackColor = false;
-            // 
-            // nickButton10
-            // 
-            this.nickButton10.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton10.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton10.BorderColor = System.Drawing.Color.Black;
-            this.nickButton10.BorderRadius = 20;
-            this.nickButton10.BorderSize = 1;
-            this.nickButton10.FlatAppearance.BorderSize = 0;
-            this.nickButton10.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton10.ForeColor = System.Drawing.Color.White;
-            this.nickButton10.Location = new System.Drawing.Point(361, 316);
-            this.nickButton10.Name = "nickButton10";
-            this.nickButton10.Size = new System.Drawing.Size(20, 20);
-            this.nickButton10.TabIndex = 17;
-            this.nickButton10.TextColor = System.Drawing.Color.White;
-            this.nickButton10.UseVisualStyleBackColor = false;
-            // 
-            // nickButton9
-            // 
-            this.nickButton9.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton9.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton9.BorderColor = System.Drawing.Color.Black;
-            this.nickButton9.BorderRadius = 20;
-            this.nickButton9.BorderSize = 1;
-            this.nickButton9.FlatAppearance.BorderSize = 0;
-            this.nickButton9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton9.ForeColor = System.Drawing.Color.White;
-            this.nickButton9.Location = new System.Drawing.Point(413, 290);
-            this.nickButton9.Name = "nickButton9";
-            this.nickButton9.Size = new System.Drawing.Size(20, 20);
-            this.nickButton9.TabIndex = 16;
-            this.nickButton9.TextColor = System.Drawing.Color.White;
-            this.nickButton9.UseVisualStyleBackColor = false;
-            // 
-            // nickButton8
-            // 
-            this.nickButton8.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton8.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton8.BorderColor = System.Drawing.Color.Black;
-            this.nickButton8.BorderRadius = 20;
-            this.nickButton8.BorderSize = 1;
-            this.nickButton8.FlatAppearance.BorderSize = 0;
-            this.nickButton8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton8.ForeColor = System.Drawing.Color.White;
-            this.nickButton8.Location = new System.Drawing.Point(387, 290);
-            this.nickButton8.Name = "nickButton8";
-            this.nickButton8.Size = new System.Drawing.Size(20, 20);
-            this.nickButton8.TabIndex = 15;
-            this.nickButton8.TextColor = System.Drawing.Color.White;
-            this.nickButton8.UseVisualStyleBackColor = false;
-            // 
-            // nickButton7
-            // 
-            this.nickButton7.BackColor = System.Drawing.Color.Transparent;
-            this.nickButton7.BackgroundColor = System.Drawing.Color.Transparent;
-            this.nickButton7.BorderColor = System.Drawing.Color.Black;
-            this.nickButton7.BorderRadius = 20;
-            this.nickButton7.BorderSize = 1;
-            this.nickButton7.FlatAppearance.BorderSize = 0;
-            this.nickButton7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.nickButton7.ForeColor = System.Drawing.Color.White;
-            this.nickButton7.Location = new System.Drawing.Point(361, 290);
-            this.nickButton7.Name = "nickButton7";
-            this.nickButton7.Size = new System.Drawing.Size(20, 20);
-            this.nickButton7.TabIndex = 14;
-            this.nickButton7.TextColor = System.Drawing.Color.White;
-            this.nickButton7.UseVisualStyleBackColor = false;
             // 
             // nickButton6
             // 
@@ -688,7 +536,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(464, 430);
+            this.ClientSize = new System.Drawing.Size(464, 393);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.numBlue);
@@ -708,17 +556,8 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.nickButton16);
-            this.Controls.Add(this.nickButton15);
             this.Controls.Add(this.nickButton14);
             this.Controls.Add(this.nickButton13);
-            this.Controls.Add(this.nickButton12);
-            this.Controls.Add(this.nickButton11);
-            this.Controls.Add(this.nickButton10);
-            this.Controls.Add(this.nickButton9);
-            this.Controls.Add(this.nickButton8);
-            this.Controls.Add(this.nickButton7);
-            this.Controls.Add(this.lbCustomColor);
             this.Controls.Add(this.nickButton6);
             this.Controls.Add(this.nickButton5);
             this.Controls.Add(this.nickButton4);
@@ -761,17 +600,8 @@
         private ColorPicker.Controls.NickButton nickButton4;
         private ColorPicker.Controls.NickButton nickButton5;
         private ColorPicker.Controls.NickButton nickButton6;
-        private System.Windows.Forms.Label lbCustomColor;
-        private ColorPicker.Controls.NickButton nickButton7;
-        private ColorPicker.Controls.NickButton nickButton8;
-        private ColorPicker.Controls.NickButton nickButton9;
-        private ColorPicker.Controls.NickButton nickButton10;
-        private ColorPicker.Controls.NickButton nickButton11;
-        private ColorPicker.Controls.NickButton nickButton12;
         private ColorPicker.Controls.NickButton nickButton13;
         private ColorPicker.Controls.NickButton nickButton14;
-        private ColorPicker.Controls.NickButton nickButton15;
-        private ColorPicker.Controls.NickButton nickButton16;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Label label1;
