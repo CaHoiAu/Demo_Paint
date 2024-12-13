@@ -316,5 +316,26 @@
   <ItemGroup>
     <None Include="Resources\crop11.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pencil_drawing1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pencil_drawing2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\square_drawing1.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\square_drawing11.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\bucket_drawing1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\eyedropper_drawing1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\manfier_drawing1.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

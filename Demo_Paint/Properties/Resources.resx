@@ -310,4 +310,19 @@
   <data name="crop11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\crop11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="pencil_drawing2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pencil_drawing2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="square_drawing11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\square_drawing11.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bucket_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\bucket_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="eyedropper_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eyedropper_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="manfier_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\manfier_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

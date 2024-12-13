@@ -123,6 +123,16 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap bucket_drawing1 {
+            get {
+                object obj = ResourceManager.GetObject("bucket_drawing1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap copy {
             get {
                 object obj = ResourceManager.GetObject("copy", resourceCulture);
@@ -213,6 +223,16 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap eyedropper_drawing1 {
+            get {
+                object obj = ResourceManager.GetObject("eyedropper_drawing1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap eyedropper1 {
             get {
                 object obj = ResourceManager.GetObject("eyedropper1", resourceCulture);
@@ -296,6 +316,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap layers1 {
             get {
                 object obj = ResourceManager.GetObject("layers1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap manfier_drawing1 {
+            get {
+                object obj = ResourceManager.GetObject("manfier_drawing1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -426,6 +456,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap pencil {
             get {
                 object obj = ResourceManager.GetObject("pencil", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pencil_drawing2 {
+            get {
+                object obj = ResourceManager.GetObject("pencil_drawing2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -606,6 +646,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap rotate21 {
             get {
                 object obj = ResourceManager.GetObject("rotate21", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap square_drawing11 {
+            get {
+                object obj = ResourceManager.GetObject("square_drawing11", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

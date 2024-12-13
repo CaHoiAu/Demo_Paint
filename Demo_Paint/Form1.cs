@@ -1,33 +1,82 @@
-﻿using System;
+﻿using Demo_Paint.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Demo_Paint
 {
+    
     public partial class Form1 : Form
     {
+
         public Form1()
         {
             InitializeComponent();
-            bm = new Bitmap(canvas.Width, canvas.Height);
-            g = Graphics.FromImage(bm);
-            g.Clear(Color.White);
-            canvas.Image = bm;
+            InitializeCanvas();
         }
         Bitmap bm;
         Graphics g;
         bool paint = false;
         Point px, py;
         int brushsize = 1;
-        int index;
-        
+        int index=0;
+        private void InitializeCanvas()
+        {
+            // Đặt DockStyle.Fill để PictureBox tự động phóng to/thu nhỏ
+
+            // Khởi tạo Bitmap và Graphics để vẽ
+            bm = new Bitmap(canvas.Width, canvas.Height);
+            g = Graphics.FromImage(bm);
+            g.Clear(Color.White);
+            canvas.Image = bm;
+        }
+        public class CustomCursor
+        {
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            private static extern IntPtr CreateIconIndirect(ref ICONINFO iconInfo);
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            private static extern bool DestroyIcon(IntPtr hIcon);
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct ICONINFO
+            {
+                public bool fIcon;          // Nếu false thì đây là con trỏ (không phải icon)
+                public int xHotspot;       // Điểm hotspot X
+                public int yHotspot;       // Điểm hotspot Y
+                public IntPtr hbmMask;     // Bitmap mask
+                public IntPtr hbmColor;    // Bitmap màu
+            }
+
+            public static Cursor CreateCursorFromBitmap(Bitmap bitmap, int hotspotX, int hotspotY)
+            {
+                ICONINFO iconInfo = new ICONINFO
+                {
+                    fIcon = false, // Là con trỏ
+                    xHotspot = hotspotX,
+                    yHotspot = hotspotY,
+                    hbmMask = bitmap.GetHbitmap(), // Tạo mask từ Bitmap
+                    hbmColor = bitmap.GetHbitmap() // Tạo màu từ Bitmap
+                };
+
+                IntPtr cursorPtr = CreateIconIndirect(ref iconInfo);
+                Cursor customCursor = new Cursor(cursorPtr);
+
+                // Giải phóng tài nguyên
+                DestroyIcon(iconInfo.hbmMask);
+                DestroyIcon(iconInfo.hbmColor);
+
+                return customCursor;
+            }
+        }
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
             paint = true;
@@ -73,15 +122,50 @@ namespace Demo_Paint
         private void canvas_MouseLeave(object sender, EventArgs e)
         {
             toolStripStatusLabel2.Text = "";
+            this.Cursor = Cursors.Default;
         }
 
         private void btnPen_Click(object sender, EventArgs e)
         {
             index = 1;
+            if (sender is Button btn && btn.Image != null)
+            {
+
+                // Lấy biểu tượng từ hình ảnh của Button
+                Bitmap bitmap = new Bitmap(Properties.Resources.pencil_drawing2);
+
+                // Tạo con trỏ chuột từ hình ảnh
+                Cursor customCursor = CustomCursor.CreateCursorFromBitmap(bitmap, 0, 32);
+
+                // Đặt con trỏ chuột thành con trỏ tùy chỉnh
+                this.Cursor = customCursor;
+            }
+            
         }
+        private Bitmap ResizeIcon(Bitmap originalIcon, int width, int height)
+        {
+            // Tạo một bitmap mới với kích thước mong muốn
+            Bitmap resizedBitmap = new Bitmap(width, height);
+            using (Graphics graphics = Graphics.FromImage(resizedBitmap))
+            {
+                // Vẽ lại hình ảnh với kích thước mới
+                graphics.DrawImage(originalIcon, 0, 0, width, height);
+            }
+            return resizedBitmap;
+        }
+
         private void btnEraser_Click(object sender, EventArgs e)
         {
             index = 2;
+            if (sender is Button btn && btn.Image != null)
+            {
+                Bitmap bitmap = ResizeIcon(Properties.Resources.square_drawing11, brushsize, brushsize);
+                // Tạo con trỏ chuột từ hình ảnh
+                Cursor customCursor = CustomCursor.CreateCursorFromBitmap(bitmap, bitmap.Size.Width/2, bitmap.Size.Height/2);
+
+                // Đặt con trỏ chuột thành con trỏ tùy chỉnh
+                this.Cursor = customCursor;
+            }
         }
         private void numUD_Size_ValueChanged(object sender, EventArgs e)
         {
@@ -138,6 +222,16 @@ namespace Demo_Paint
         private void btnBucket_Click(object sender, EventArgs e)
         {
             index = 3;
+            if (sender is Button btn && btn.Image != null)
+            {
+                Bitmap bitmap = new Bitmap(Properties.Resources.bucket_drawing1);
+
+                // Tạo con trỏ chuột từ hình ảnh
+                Cursor customCursor = CustomCursor.CreateCursorFromBitmap(bitmap, 0, 32);
+
+                // Đặt con trỏ chuột thành con trỏ tùy chỉnh
+                this.Cursor = customCursor;
+            }
         }
 
         private void toolStripMenuItem8_Click(object sender, EventArgs e)
@@ -176,9 +270,91 @@ namespace Demo_Paint
             btnSelection.Image = Properties.Resources.freeform1;
         }
 
+        private void canvas_MouseEnter(object sender, EventArgs e)
+        {
+            Cursor customCursor = Cursors.Default; // Mặc định là con trỏ bình thường
+
+            if (index == 1)
+            {
+                Bitmap iconBitmap = new Bitmap(Properties.Resources.pencil_drawing2);
+                customCursor = CustomCursor.CreateCursorFromBitmap(iconBitmap, 0, 32); // Tạo con trỏ từ icon
+            }
+            else if (index == 2)
+            {
+                Bitmap iconBitmap = ResizeIcon(Properties.Resources.square_drawing11, brushsize, brushsize);
+                customCursor = CustomCursor.CreateCursorFromBitmap(iconBitmap, iconBitmap.Size.Width/2, iconBitmap.Size.Height/2); // Tạo con trỏ từ icon
+            }
+            else if (index == 3)
+            {
+                Bitmap iconBitmap = new Bitmap(Properties.Resources.bucket_drawing1);
+                customCursor = CustomCursor.CreateCursorFromBitmap(iconBitmap, 0, 30); // Tạo con trỏ từ icon
+            }
+            else if (index == 4)
+            {
+                Bitmap iconBitmap = new Bitmap(Properties.Resources.eyedropper_drawing1);
+                customCursor = CustomCursor.CreateCursorFromBitmap(iconBitmap, 0, 30); // Tạo con trỏ từ icon
+            }
+            else if (index == 5)
+            {
+                Bitmap iconBitmap = new Bitmap(Properties.Resources.manfier_drawing1);
+                customCursor = CustomCursor.CreateCursorFromBitmap(iconBitmap, 0, 0); // Tạo con trỏ từ icon
+            }
+            this.Cursor = customCursor; // Đặt con trỏ tùy chỉnh
+        }
+
+        private void btnEyedropper_Click(object sender, EventArgs e)
+        {
+            index = 4;
+            if (sender is Button btn && btn.Image != null)
+            {
+                Bitmap bitmap = new Bitmap(Properties.Resources.eyedropper_drawing1);
+
+                // Tạo con trỏ chuột từ hình ảnh
+                Cursor customCursor = CustomCursor.CreateCursorFromBitmap(bitmap, 0, 30);
+
+                // Đặt con trỏ chuột thành con trỏ tùy chỉnh
+                this.Cursor = customCursor;
+            }
+        }
+
+        private void btnMagnifier_Click(object sender, EventArgs e)
+        {
+            index = 5;
+            if (sender is Button btn && btn.Image != null)
+            {
+                Bitmap bitmap = new Bitmap(Properties.Resources.manfier_drawing1);
+
+                // Tạo con trỏ chuột từ hình ảnh
+                Cursor customCursor = CustomCursor.CreateCursorFromBitmap(bitmap, 0, 30);
+
+                // Đặt con trỏ chuột thành con trỏ tùy chỉnh
+                this.Cursor = customCursor;
+            }
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            UpdateCanvasSize();
+        }
+        private void UpdateCanvasSize()
+        {
+            // Tạo Bitmap mới với kích thước mới của PictureBox
+            Bitmap newBitmap = new Bitmap(canvas.Width, canvas.Height);
+            Graphics newGraphics = Graphics.FromImage(newBitmap);
+            newGraphics.Clear(Color.White);
+
+            // Cập nhật lại Bitmap và Graphics
+            bm = newBitmap;
+            g = newGraphics;
+            canvas.Image = bm;
+        }
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
             Color old_clr=bm.GetPixel(x, y);
+            if (old_clr == new_clr)
+            {
+                return;
+            }
             Stack<Point> pixel = new Stack<Point>();
             pixel.Push(new Point(x, y));
             bm.SetPixel(x, y, new_clr);
