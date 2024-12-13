@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -28,6 +29,8 @@ namespace Demo_Paint
         Point px, py;
         int brushsize = 1;
         int index=0;
+        float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
+        Point panStartPoint = Point.Empty; // Điểm bắt đầu khi kéo
         private void InitializeCanvas()
         {
             // Đặt DockStyle.Fill để PictureBox tự động phóng to/thu nhỏ
@@ -218,6 +221,30 @@ namespace Demo_Paint
                 Point point = set_point(canvas, e.Location);
                 Fill(bm, point.X,point.Y,pic_ColorFill.BackColor);
             }
+            else if (index == 4)
+            {
+                Point point=set_point(canvas, e.Location);
+                if(point.X>=0 && point.X<bm.Width && point.Y>=0 && point.Y < bm.Height)
+                {
+                    Color pickedClr=bm.GetPixel(point.X,point.Y);
+                    pic_ColorStroke.BackColor=pickedClr;
+                }
+            }
+            else if (index == 5)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    Console.WriteLine("Chuột trái được nhấn");
+
+                    zoomFactor += 0.1f;
+                    UpdateCanvasZoom();
+                }
+                else if(e.Button == MouseButtons.Right)
+                {
+                    zoomFactor = Math.Max(0.1f, zoomFactor - 0.1f);
+                    UpdateCanvasZoom();
+                }
+            }
         }
         private void btnBucket_Click(object sender, EventArgs e)
         {
@@ -331,7 +358,13 @@ namespace Demo_Paint
                 this.Cursor = customCursor;
             }
         }
-
+        private void UpdateCanvasZoom()
+        {
+            // Tính lại kích thước của PictureBox
+            canvas.Width = (int)(bm.Width * zoomFactor);
+            canvas.Height = (int)(bm.Height * zoomFactor);
+            canvas.Invalidate(); // Vẽ lại hình ảnh
+        }
         private void Form1_Resize(object sender, EventArgs e)
         {
             UpdateCanvasSize();
