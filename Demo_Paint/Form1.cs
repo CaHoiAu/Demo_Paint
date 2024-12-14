@@ -30,7 +30,22 @@ namespace Demo_Paint
         int brushsize = 1;
         int index=0;
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
-        Point panStartPoint = Point.Empty; // Điểm bắt đầu khi kéo
+        float startPoint;
+        private List<DrawLine> lines = new List<DrawLine>();
+        public class DrawLine
+        {
+            public Point StartPoint { get; set; }
+            public Point EndPoint { get; set; }
+            public Pen DrawingPen { get; set; }
+
+            public DrawLine(Point start, Point end, Pen pen)
+            {
+                StartPoint = start;
+                EndPoint = end;
+                DrawingPen = pen;
+            }
+        }
+
         private void InitializeCanvas()
         {
             // Đặt DockStyle.Fill để PictureBox tự động phóng to/thu nhỏ
@@ -84,7 +99,6 @@ namespace Demo_Paint
         {
             paint = true;
             py = e.Location;
-
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -234,8 +248,6 @@ namespace Demo_Paint
             {
                 if (e.Button == MouseButtons.Left)
                 {
-                    Console.WriteLine("Chuột trái được nhấn");
-
                     zoomFactor += 0.1f;
                     UpdateCanvasZoom();
                 }
