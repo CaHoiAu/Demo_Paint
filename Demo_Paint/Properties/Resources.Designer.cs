@@ -343,6 +343,16 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap new_file1 {
+            get {
+                object obj = ResourceManager.GetObject("new-file1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap noun_dashed_rectangle1 {
             get {
                 object obj = ResourceManager.GetObject("noun-dashed-rectangle1", resourceCulture);
@@ -416,6 +426,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap openfile1 {
             get {
                 object obj = ResourceManager.GetObject("openfile1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap openfile2 {
+            get {
+                object obj = ResourceManager.GetObject("openfile2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

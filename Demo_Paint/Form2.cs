@@ -360,5 +360,11 @@ namespace Demo_Paint
             DialogResult = DialogResult.OK;
             Close();
         }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
     }
 }

@@ -32,6 +32,9 @@ namespace Demo_Paint
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
         float startPoint;
         private List<DrawLine> lines = new List<DrawLine>();
+        Stack<Bitmap> undoStack = new Stack<Bitmap>();
+        Stack<Bitmap> redoStack = new Stack<Bitmap>();
+
         public class DrawLine
         {
             public Point StartPoint { get; set; }
@@ -98,6 +101,7 @@ namespace Demo_Paint
         {
             paint = true;
             py = e.Location;
+            SaveState();
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -382,16 +386,78 @@ namespace Demo_Paint
         }
         private void UpdateCanvasSize()
         {
+            if (canvas.Width <= 0 || canvas.Height <= 0)
+                return;
+
             // Tạo Bitmap mới với kích thước mới của PictureBox
             Bitmap newBitmap = new Bitmap(canvas.Width, canvas.Height);
             Graphics newGraphics = Graphics.FromImage(newBitmap);
             newGraphics.Clear(Color.White);
 
+            // Sao chép nội dung của Bitmap cũ vào Bitmap mới
+            newGraphics.DrawImage(bm, 0, 0);
+
             // Cập nhật lại Bitmap và Graphics
             bm = newBitmap;
-            g = newGraphics;
+            g = Graphics.FromImage(bm);
             canvas.Image = bm;
         }
+
+        private void SaveState()
+        {
+            redoStack.Clear();
+
+            Bitmap stateCopy = new Bitmap(bm);
+            undoStack.Push(stateCopy);
+        }
+        private void Undo()
+        {
+            if (undoStack.Count > 0)
+            {
+                redoStack.Push(new Bitmap(bm));
+                bm = undoStack.Pop();
+                g=Graphics.FromImage(bm);
+                canvas.Image = bm;
+                canvas.Refresh();
+            }
+        }
+
+        private void btnUndo_Click(object sender, EventArgs e)
+        {
+            Undo();
+        }
+        private void Redo()
+        {
+            if (redoStack.Count > 0)
+            {
+                undoStack.Push(new Bitmap(bm));
+
+                // Khôi phục trạng thái từ redoStack
+                bm = redoStack.Pop();
+                g = Graphics.FromImage(bm);
+                canvas.Image = bm;
+                canvas.Refresh();
+            }
+        }
+        private void btnRedo_Click(object sender, EventArgs e)
+        {
+            Redo();
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Control && e.KeyCode == Keys.Z)
+            {
+                Undo();
+                e.Handled= true;
+            }
+            if (e.Control && e.KeyCode == Keys.Y)
+            {
+                Redo();
+                e.Handled = true;
+            }
+        }
+
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
             Color old_clr=bm.GetPixel(x, y);

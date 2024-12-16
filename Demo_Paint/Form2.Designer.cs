@@ -46,12 +46,6 @@
             this.numRed = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.radioB = new ColorPicker.Controls.NickRadioButton();
-            this.radioG = new ColorPicker.Controls.NickRadioButton();
-            this.radioR = new ColorPicker.Controls.NickRadioButton();
-            this.radioL = new ColorPicker.Controls.NickRadioButton();
-            this.radioS = new ColorPicker.Controls.NickRadioButton();
-            this.radioH = new ColorPicker.Controls.NickRadioButton();
             this.nickButton14 = new ColorPicker.Controls.NickButton();
             this.nickButton13 = new ColorPicker.Controls.NickButton();
             this.nickButton6 = new ColorPicker.Controls.NickButton();
@@ -60,6 +54,12 @@
             this.nickButton3 = new ColorPicker.Controls.NickButton();
             this.nickButton2 = new ColorPicker.Controls.NickButton();
             this.nickButton1 = new ColorPicker.Controls.NickButton();
+            this.radioB = new ColorPicker.Controls.NickRadioButton();
+            this.radioG = new ColorPicker.Controls.NickRadioButton();
+            this.radioR = new ColorPicker.Controls.NickRadioButton();
+            this.radioL = new ColorPicker.Controls.NickRadioButton();
+            this.radioS = new ColorPicker.Controls.NickRadioButton();
+            this.radioH = new ColorPicker.Controls.NickRadioButton();
             this.gradientPanel1 = new GradientPanel.GradientPanel();
             this.opacitySlider1 = new ColorPicker.OpacitySlider();
             this.colorSlider1 = new ColorPicker.ColorSlider();
@@ -118,6 +118,7 @@
             this.btnCancel.TabIndex = 25;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // label1
             // 
@@ -235,102 +236,6 @@
             this.label3.Size = new System.Drawing.Size(31, 13);
             this.label3.TabIndex = 45;
             this.label3.Text = "Color";
-            // 
-            // radioB
-            // 
-            this.radioB.AutoSize = true;
-            this.radioB.CheckedColor = System.Drawing.Color.Gray;
-            this.radioB.HoverColor = System.Drawing.Color.White;
-            this.radioB.Location = new System.Drawing.Point(354, 190);
-            this.radioB.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioB.Name = "radioB";
-            this.radioB.Size = new System.Drawing.Size(44, 21);
-            this.radioB.TabIndex = 42;
-            this.radioB.TabStop = true;
-            this.radioB.Text = "B";
-            this.radioB.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioB.UseVisualStyleBackColor = true;
-            this.radioB.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
-            // 
-            // radioG
-            // 
-            this.radioG.AutoSize = true;
-            this.radioG.CheckedColor = System.Drawing.Color.Gray;
-            this.radioG.HoverColor = System.Drawing.Color.White;
-            this.radioG.Location = new System.Drawing.Point(354, 165);
-            this.radioG.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioG.Name = "radioG";
-            this.radioG.Size = new System.Drawing.Size(45, 21);
-            this.radioG.TabIndex = 39;
-            this.radioG.TabStop = true;
-            this.radioG.Text = "G";
-            this.radioG.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioG.UseVisualStyleBackColor = true;
-            this.radioG.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
-            // 
-            // radioR
-            // 
-            this.radioR.AutoSize = true;
-            this.radioR.CheckedColor = System.Drawing.Color.Gray;
-            this.radioR.HoverColor = System.Drawing.Color.White;
-            this.radioR.Location = new System.Drawing.Point(353, 140);
-            this.radioR.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioR.Name = "radioR";
-            this.radioR.Size = new System.Drawing.Size(45, 21);
-            this.radioR.TabIndex = 38;
-            this.radioR.TabStop = true;
-            this.radioR.Text = "R";
-            this.radioR.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioR.UseVisualStyleBackColor = true;
-            this.radioR.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
-            // 
-            // radioL
-            // 
-            this.radioL.AutoSize = true;
-            this.radioL.CheckedColor = System.Drawing.Color.Gray;
-            this.radioL.HoverColor = System.Drawing.Color.White;
-            this.radioL.Location = new System.Drawing.Point(354, 80);
-            this.radioL.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioL.Name = "radioL";
-            this.radioL.Size = new System.Drawing.Size(43, 21);
-            this.radioL.TabIndex = 32;
-            this.radioL.TabStop = true;
-            this.radioL.Text = "L";
-            this.radioL.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioL.UseVisualStyleBackColor = true;
-            this.radioL.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
-            // 
-            // radioS
-            // 
-            this.radioS.AutoSize = true;
-            this.radioS.CheckedColor = System.Drawing.Color.Gray;
-            this.radioS.HoverColor = System.Drawing.Color.White;
-            this.radioS.Location = new System.Drawing.Point(354, 55);
-            this.radioS.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioS.Name = "radioS";
-            this.radioS.Size = new System.Drawing.Size(44, 21);
-            this.radioS.TabIndex = 29;
-            this.radioS.TabStop = true;
-            this.radioS.Text = "S";
-            this.radioS.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioS.UseVisualStyleBackColor = true;
-            this.radioS.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
-            // 
-            // radioH
-            // 
-            this.radioH.AutoSize = true;
-            this.radioH.CheckedColor = System.Drawing.Color.Gray;
-            this.radioH.HoverColor = System.Drawing.Color.White;
-            this.radioH.Location = new System.Drawing.Point(353, 30);
-            this.radioH.MinimumSize = new System.Drawing.Size(0, 21);
-            this.radioH.Name = "radioH";
-            this.radioH.Size = new System.Drawing.Size(45, 21);
-            this.radioH.TabIndex = 28;
-            this.radioH.TabStop = true;
-            this.radioH.Text = "H";
-            this.radioH.UncheckedColor = System.Drawing.Color.Gray;
-            this.radioH.UseVisualStyleBackColor = true;
-            this.radioH.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
             // 
             // nickButton14
             // 
@@ -483,6 +388,102 @@
             this.toolTip1.SetToolTip(this.nickButton1, "Red");
             this.nickButton1.UseVisualStyleBackColor = false;
             this.nickButton1.Click += new System.EventHandler(this.basicColor_Click);
+            // 
+            // radioB
+            // 
+            this.radioB.AutoSize = true;
+            this.radioB.CheckedColor = System.Drawing.Color.Gray;
+            this.radioB.HoverColor = System.Drawing.Color.White;
+            this.radioB.Location = new System.Drawing.Point(354, 190);
+            this.radioB.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioB.Name = "radioB";
+            this.radioB.Size = new System.Drawing.Size(44, 21);
+            this.radioB.TabIndex = 42;
+            this.radioB.TabStop = true;
+            this.radioB.Text = "B";
+            this.radioB.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioB.UseVisualStyleBackColor = true;
+            this.radioB.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
+            // 
+            // radioG
+            // 
+            this.radioG.AutoSize = true;
+            this.radioG.CheckedColor = System.Drawing.Color.Gray;
+            this.radioG.HoverColor = System.Drawing.Color.White;
+            this.radioG.Location = new System.Drawing.Point(354, 165);
+            this.radioG.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioG.Name = "radioG";
+            this.radioG.Size = new System.Drawing.Size(45, 21);
+            this.radioG.TabIndex = 39;
+            this.radioG.TabStop = true;
+            this.radioG.Text = "G";
+            this.radioG.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioG.UseVisualStyleBackColor = true;
+            this.radioG.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
+            // 
+            // radioR
+            // 
+            this.radioR.AutoSize = true;
+            this.radioR.CheckedColor = System.Drawing.Color.Gray;
+            this.radioR.HoverColor = System.Drawing.Color.White;
+            this.radioR.Location = new System.Drawing.Point(353, 140);
+            this.radioR.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioR.Name = "radioR";
+            this.radioR.Size = new System.Drawing.Size(45, 21);
+            this.radioR.TabIndex = 38;
+            this.radioR.TabStop = true;
+            this.radioR.Text = "R";
+            this.radioR.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioR.UseVisualStyleBackColor = true;
+            this.radioR.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
+            // 
+            // radioL
+            // 
+            this.radioL.AutoSize = true;
+            this.radioL.CheckedColor = System.Drawing.Color.Gray;
+            this.radioL.HoverColor = System.Drawing.Color.White;
+            this.radioL.Location = new System.Drawing.Point(354, 80);
+            this.radioL.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioL.Name = "radioL";
+            this.radioL.Size = new System.Drawing.Size(43, 21);
+            this.radioL.TabIndex = 32;
+            this.radioL.TabStop = true;
+            this.radioL.Text = "L";
+            this.radioL.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioL.UseVisualStyleBackColor = true;
+            this.radioL.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
+            // 
+            // radioS
+            // 
+            this.radioS.AutoSize = true;
+            this.radioS.CheckedColor = System.Drawing.Color.Gray;
+            this.radioS.HoverColor = System.Drawing.Color.White;
+            this.radioS.Location = new System.Drawing.Point(354, 55);
+            this.radioS.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioS.Name = "radioS";
+            this.radioS.Size = new System.Drawing.Size(44, 21);
+            this.radioS.TabIndex = 29;
+            this.radioS.TabStop = true;
+            this.radioS.Text = "S";
+            this.radioS.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioS.UseVisualStyleBackColor = true;
+            this.radioS.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
+            // 
+            // radioH
+            // 
+            this.radioH.AutoSize = true;
+            this.radioH.CheckedColor = System.Drawing.Color.Gray;
+            this.radioH.HoverColor = System.Drawing.Color.White;
+            this.radioH.Location = new System.Drawing.Point(353, 30);
+            this.radioH.MinimumSize = new System.Drawing.Size(0, 21);
+            this.radioH.Name = "radioH";
+            this.radioH.Size = new System.Drawing.Size(45, 21);
+            this.radioH.TabIndex = 28;
+            this.radioH.TabStop = true;
+            this.radioH.Text = "H";
+            this.radioH.UncheckedColor = System.Drawing.Color.Gray;
+            this.radioH.UseVisualStyleBackColor = true;
+            this.radioH.CheckedChanged += new System.EventHandler(this.ColorModeChangedHandler);
             // 
             // gradientPanel1
             // 

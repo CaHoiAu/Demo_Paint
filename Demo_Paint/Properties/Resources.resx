@@ -130,14 +130,17 @@
   <data name="eyedropper_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\eyedropper_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Pen-0211" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Pen-0211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="star1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\star1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="bucket_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\bucket_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="crop1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\crop1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="square_drawing11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\square_drawing11.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="openfile1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\openfile1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -187,6 +190,9 @@
   <data name="rec1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rec1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="full-screen-icon1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\full-screen-icon1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="manfier_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\manfier_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -220,17 +226,20 @@
   <data name="rec211" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rec211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Pen-0211" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Pen-0211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="rotate11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rotate11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="square_drawing11" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\square_drawing11.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="new-file1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\new-file1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="layers1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\layers1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="crop1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\crop1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="rec11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rec11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -261,9 +270,6 @@
   </data>
   <data name="diamond1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\diamond1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="rotate11" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rotate11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="pnghut_arrow-clip-art-black-and-white-down11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pnghut_arrow-clip-art-black-and-white-down11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -325,7 +331,7 @@
   <data name="noun-dashed-rectangle1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\noun-dashed-rectangle1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="full-screen-icon1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\full-screen-icon1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="openfile2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\openfile2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
