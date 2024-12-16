@@ -38,11 +38,10 @@ namespace Demo_Paint
             public Point EndPoint { get; set; }
             public Pen DrawingPen { get; set; }
 
-            public DrawLine(Point start, Point end, Pen pen)
+            public DrawLine(Point start, Point end)
             {
                 StartPoint = start;
                 EndPoint = end;
-                DrawingPen = pen;
             }
         }
 
