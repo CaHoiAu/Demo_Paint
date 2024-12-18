@@ -17,24 +17,36 @@ namespace Demo_Paint
     
     public partial class Form1 : Form
     {
-
-        public Form1()
-        {
-            InitializeComponent();
-            InitializeCanvas();
-        }
         Bitmap bm;
         Graphics g;
         bool paint = false;
         Point px, py;
         int brushsize = 1;
-        int index=0;
+        int index = 0;
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
         float startPoint;
         private List<DrawLine> lines = new List<DrawLine>();
+        //các biến undo, redo
         Stack<Bitmap> undoStack = new Stack<Bitmap>();
         Stack<Bitmap> redoStack = new Stack<Bitmap>();
+        //các biến text
+        private string inputText = ""; // Chuỗi văn bản nhập từ bàn phím
+        private Point textPosition = new Point(50, 50); // Vị trí bắt đầu vẽ văn bản
+        private Font textFont = new Font("Arial", 14, FontStyle.Regular);
+        private Brush textBrush = Brushes.Black;
+        private bool isTyping = false; // Cờ xác định trạng thái nhập văn bản
+        private Rectangle textBoxRect;
+        private bool isRectSelected = false;
 
+        Form3 fontDialog = new Form3();
+        public Form1()
+        {
+            InitializeComponent();
+            InitializeCanvas();
+            fontDialog.FormBorderStyle = FormBorderStyle.None;
+            fontDialog.Owner = this;
+        }
+        
         public class DrawLine
         {
             public Point StartPoint { get; set; }
@@ -102,6 +114,14 @@ namespace Demo_Paint
             paint = true;
             py = e.Location;
             SaveState();
+
+            int rectWidth = 200;
+            int rectHeight = 50;
+            textBoxRect = new Rectangle(e.X, e.Y, rectWidth, rectHeight);
+            isRectSelected = true;
+
+            // Yêu cầu vẽ lại canvas
+            canvas.Invalidate();
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -160,7 +180,7 @@ namespace Demo_Paint
                 // Đặt con trỏ chuột thành con trỏ tùy chỉnh
                 this.Cursor = customCursor;
             }
-            
+            fontDialog.Hide(); // Ẩn form phụ
         }
         private Bitmap ResizeIcon(Bitmap originalIcon, int width, int height)
         {
@@ -186,6 +206,7 @@ namespace Demo_Paint
                 // Đặt con trỏ chuột thành con trỏ tùy chỉnh
                 this.Cursor = customCursor;
             }
+            fontDialog.Hide(); // Ẩn form phụ
         }
         private void numUD_Size_ValueChanged(object sender, EventArgs e)
         {
@@ -260,6 +281,15 @@ namespace Demo_Paint
                     UpdateCanvasZoom();
                 }
             }
+            else if (index == 6)
+            {
+                textPosition = e.Location;
+                inputText = "";
+                isTyping = true;
+                isRectSelected = true;
+                DrawTextBox();
+                canvas.Invalidate();
+            }
         }
         private void btnBucket_Click(object sender, EventArgs e)
         {
@@ -274,6 +304,7 @@ namespace Demo_Paint
                 // Đặt con trỏ chuột thành con trỏ tùy chỉnh
                 this.Cursor = customCursor;
             }
+            fontDialog.Hide(); // Ẩn form phụ
         }
 
         private void toolStripMenuItem8_Click(object sender, EventArgs e)
@@ -357,6 +388,7 @@ namespace Demo_Paint
                 // Đặt con trỏ chuột thành con trỏ tùy chỉnh
                 this.Cursor = customCursor;
             }
+            fontDialog.Hide(); // Ẩn form phụ
         }
 
         private void btnMagnifier_Click(object sender, EventArgs e)
@@ -372,6 +404,7 @@ namespace Demo_Paint
                 // Đặt con trỏ chuột thành con trỏ tùy chỉnh
                 this.Cursor = customCursor;
             }
+            fontDialog.Hide(); // Ẩn form phụ
         }
         private void UpdateCanvasZoom()
         {
@@ -382,7 +415,13 @@ namespace Demo_Paint
         }
         private void Form1_Resize(object sender, EventArgs e)
         {
+            if (fontDialog != null && !fontDialog.IsDisposed)
+            {
+                Point btnPosition = btnText.PointToScreen(Point.Empty);
+                fontDialog.Location = new Point(btnPosition.X-30, btnPosition.Y + 80);
+            }
             UpdateCanvasSize();
+
         }
         private void UpdateCanvasSize()
         {
@@ -446,17 +485,172 @@ namespace Demo_Paint
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Control && e.KeyCode == Keys.Z)
+
+            if (e.Control && e.KeyCode == Keys.Z)
             {
                 Undo();
-                e.Handled= true;
+                e.Handled = true;
             }
             if (e.Control && e.KeyCode == Keys.Y)
             {
                 Redo();
                 e.Handled = true;
             }
+            bool isCapsLock = Control.IsKeyLocked(Keys.CapsLock);
+
+            if (isRectSelected && isTyping)
+            {
+                if (e.KeyCode == Keys.Back && inputText.Length > 0)
+                {
+                    inputText = inputText.Substring(0, inputText.Length - 1);
+                }
+                else if (e.KeyCode == Keys.Enter)
+                {
+                    inputText += "\n"; // Thêm dòng mới
+                }
+
+                else if (e.KeyCode == Keys.Escape || e.Control && e.KeyCode==Keys.Z)
+                {
+                    isTyping = false;
+                    inputText = ""; // Hủy bỏ việc nhập văn bản
+                }
+                else
+                {
+                    char inputChar = ConvertKeyToChar(e.KeyCode, e.Shift);
+                    if (inputChar != '\0') // Nếu có ký tự hợp lệ
+                    {
+                        // Kiểm tra CapsLock và Shift để xác định chữ hoa/thường
+                        if (char.IsLetter(inputChar))
+                        {
+                            if (e.Shift ^ isCapsLock) // XOR để kiểm tra trạng thái Shift và CapsLock
+                                inputChar = char.ToUpper(inputChar);
+                            else
+                                inputChar = char.ToLower(inputChar);
+                        }
+                        inputText += inputChar;
+                    }
+                }
+
+                canvas.Invalidate(); // Yêu cầu vẽ lại canvas
+            }
         }
+        private char ConvertKeyToChar(Keys key, bool isShiftPressed)
+        {
+            if (key >= Keys.A && key <= Keys.Z)
+            {
+                return isShiftPressed ? key.ToString()[0] : char.ToLower(key.ToString()[0]);
+            }
+            if (key >= Keys.D0 && key <= Keys.D9)
+            {
+                if (isShiftPressed)
+                {
+                    string shiftNumbers = ")!@#$%^&*("; // Ký tự khi Shift + số
+                    return shiftNumbers[key - Keys.D0];
+                }
+                else
+                    return (char)(key - Keys.D0 + '0');
+            }
+
+            // Phím đặc biệt
+            if (key == Keys.Space)
+                return ' ';
+            if (key == Keys.OemMinus)
+                return isShiftPressed ? '_' : '-';
+            if (key == Keys.Oemplus)
+                return isShiftPressed ? '+' : '=';
+            if (key == Keys.OemOpenBrackets)
+                return isShiftPressed ? '{' : '[';
+            if (key == Keys.OemCloseBrackets)
+                return isShiftPressed ? '}' : ']';
+            if (key == Keys.OemPipe)
+                return isShiftPressed ? '|' : '\\';
+            if (key == Keys.OemSemicolon)
+                return isShiftPressed ? ':' : ';';
+            if (key == Keys.OemQuotes)
+                return isShiftPressed ? '"' : '\'';
+            if (key == Keys.Oemcomma)
+                return isShiftPressed ? '<' : ',';
+            if (key == Keys.OemPeriod)
+                return isShiftPressed ? '>' : '.';
+            if (key == Keys.OemQuestion)
+                return isShiftPressed ? '?' : '/';
+            if (key == Keys.Oemtilde)
+                return isShiftPressed ? '~' : '`';
+
+            return '\0'; // Không hợp lệ
+        }
+        private void btnText_Click(object sender, EventArgs e)
+        {
+            index = 6;
+            if (fontDialog == null || fontDialog.IsDisposed) // Kiểm tra fontDialog đã bị dispose chưa
+            {
+                fontDialog = new Form3(); // Tạo lại form phụ
+            }
+            fontDialog.StartPosition = FormStartPosition.Manual;
+            Point btnPosition = btnText.PointToScreen(Point.Empty);
+            fontDialog.Location = new Point(btnPosition.X-30, btnPosition.Y + 80);
+            fontDialog.Show();
+        }
+        // Phương thức vẽ hình chữ nhật nét đứt và văn bản
+        private void DrawTextBox()
+        {
+            // Vẽ hình chữ nhật nét đứt
+            if (isRectSelected)
+            {
+                Pen dottedPen = new Pen(Color.Black);
+                dottedPen.DashStyle = DashStyle.Dot; // Đặt kiểu đường nét đứt
+                g.DrawRectangle(dottedPen, textBoxRect);
+            }
+
+            // Vẽ văn bản nếu isTyping = true và có văn bản
+            if (isTyping && !string.IsNullOrEmpty(inputText))
+            {
+                int x = textBoxRect.X + 5; // Vị trí bắt đầu vẽ văn bản, cách lề trái 5px
+                int y = textBoxRect.Y + 5; // Vị trí bắt đầu vẽ văn bản, cách lề trên 5px
+                int maxWidth = textBoxRect.Width - 5; // Chiều rộng tối đa (trừ lề trái/phải)
+
+                // Chia văn bản thành các dòng phù hợp
+                string currentLine = "";
+                foreach (char c in inputText)
+                {
+                    string tempLine = currentLine + c;
+
+                    // Đo chiều rộng dòng tạm
+                    SizeF textSize = g.MeasureString(tempLine, textFont);
+
+                    if (textSize.Width > maxWidth) // Nếu vượt quá chiều rộng tối đa
+                    {
+                        // Vẽ dòng hiện tại
+                        g.DrawString(currentLine, textFont, textBrush, x, y);
+
+                        // Xuống dòng
+                        y += textFont.Height;
+
+                        // Bắt đầu dòng mới
+                        currentLine = c.ToString();
+                    }
+                    else
+                    {
+                        currentLine = tempLine;
+                    }
+                }
+
+                // Vẽ dòng cuối cùng
+                if (!string.IsNullOrEmpty(currentLine))
+                {
+                    g.DrawString(currentLine, textFont, textBrush, x, y);
+                }
+            }
+        }
+
+        private void canvas_Paint(object sender, PaintEventArgs e)
+        {
+            if (isRectSelected)
+            {
+                DrawTextBox();
+            }
+        }
+
 
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {

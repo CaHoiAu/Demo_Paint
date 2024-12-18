@@ -40,7 +40,6 @@
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tooltip = new System.Windows.Forms.ToolTip(this.components);
-            this.btnText = new System.Windows.Forms.Button();
             this.btnLine = new System.Windows.Forms.Button();
             this.btnFitWindow = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
@@ -61,6 +60,7 @@
             this.btnEraser = new System.Windows.Forms.Button();
             this.btnRedo = new System.Windows.Forms.Button();
             this.btnUndo = new System.Windows.Forms.Button();
+            this.btnText = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.numUD_Size = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
@@ -188,21 +188,6 @@
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
             this.pasteToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.pasteToolStripMenuItem.Text = "Paste";
-            // 
-            // btnText
-            // 
-            this.btnText.FlatAppearance.BorderColor = System.Drawing.Color.White;
-            this.btnText.FlatAppearance.BorderSize = 0;
-            this.btnText.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnText.Font = new System.Drawing.Font("Times New Roman", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnText.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.btnText.Location = new System.Drawing.Point(252, 6);
-            this.btnText.Name = "btnText";
-            this.btnText.Size = new System.Drawing.Size(29, 29);
-            this.btnText.TabIndex = 15;
-            this.btnText.Text = "A";
-            this.tooltip.SetToolTip(this.btnText, "Text");
-            this.btnText.UseVisualStyleBackColor = true;
             // 
             // btnLine
             // 
@@ -474,6 +459,22 @@
             this.tooltip.SetToolTip(this.btnUndo, "Undo (Ctrl+Z)");
             this.btnUndo.UseVisualStyleBackColor = true;
             this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
+            // 
+            // btnText
+            // 
+            this.btnText.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.btnText.FlatAppearance.BorderSize = 0;
+            this.btnText.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnText.Font = new System.Drawing.Font("Times New Roman", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnText.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.btnText.Location = new System.Drawing.Point(252, 6);
+            this.btnText.Name = "btnText";
+            this.btnText.Size = new System.Drawing.Size(29, 29);
+            this.btnText.TabIndex = 15;
+            this.btnText.Text = "A";
+            this.tooltip.SetToolTip(this.btnText, "Text");
+            this.btnText.UseVisualStyleBackColor = true;
+            this.btnText.Click += new System.EventHandler(this.btnText_Click);
             // 
             // panel1
             // 
@@ -953,6 +954,7 @@
             this.canvas.Size = new System.Drawing.Size(839, 302);
             this.canvas.TabIndex = 4;
             this.canvas.TabStop = false;
+            this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
             this.canvas.MouseClick += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseClick);
             this.canvas.MouseDown += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseDown);
             this.canvas.MouseEnter += new System.EventHandler(this.canvas_MouseEnter);
@@ -1027,7 +1029,6 @@
         private System.Windows.Forms.Button btnPen;
         private System.Windows.Forms.Button btnBucket;
         private System.Windows.Forms.Button btnEyedropper;
-        private System.Windows.Forms.Button btnText;
         private System.Windows.Forms.Button btnMagnifier;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Label label1;
@@ -1074,6 +1075,7 @@
         private System.Windows.Forms.NumericUpDown numUD_Size;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button btnFitWindow;
+        private System.Windows.Forms.Button btnText;
     }
 }
 
