@@ -645,10 +645,6 @@ namespace Demo_Paint
 
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
-            if (isRectSelected)
-            {
-                DrawTextBox();
-            }
         }
 
 
