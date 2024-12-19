@@ -117,38 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ckbFill.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="ckbFill.Location" type="System.Drawing.Point, System.Drawing">
-    <value>564, 12</value>
-  </data>
-  <data name="ckbFill.Size" type="System.Drawing.Size, System.Drawing">
-    <value>99, 17</value>
-  </data>
-  <data name="ckbFill.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
-  </data>
-  <data name="ckbFill.Text" xml:space="preserve">
-    <value>Background Fill</value>
-  </data>
-  <data name="ckbFill.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleCenter</value>
-  </data>
-  <data name="&gt;&gt;ckbFill.Name" xml:space="preserve">
-    <value>ckbFill</value>
-  </data>
-  <data name="&gt;&gt;ckbFill.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;ckbFill.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;ckbFill.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="cbbFont.Size" type="System.Drawing.Size, System.Drawing">
     <value>121, 42</value>
   </data>
@@ -170,7 +139,7 @@
   <data name="toolStripLabel2.Text" xml:space="preserve">
     <value>  </value>
   </data>
-  <data name="toolStripButton1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnBold.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAARCAYAAADUryzEAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFmSURBVDhPfdM7KEdhGMfxI4PFpUySshAxuqVEBlYpFimT
@@ -182,13 +151,13 @@
         nTDN/AC93jEOQmp6iJPwWttXRz8HJAh+AAHFjN1/Bvj4AAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="toolStripButton1.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnBold.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton1.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnBold.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton1.Text" xml:space="preserve">
+  <data name="btnBold.Text" xml:space="preserve">
     <value>toolStripButton1</value>
   </data>
   <data name="toolStripLabel3.Size" type="System.Drawing.Size, System.Drawing">
@@ -197,7 +166,7 @@
   <data name="toolStripLabel3.Text" xml:space="preserve">
     <value>   </value>
   </data>
-  <data name="toolStripButton2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnItalic.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAYCAYAAADzoH0MAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEkSURBVDhPndSxK4RxHMfxJ3dFSE8xmCwS+7MYjv+AksGJ
@@ -208,13 +177,13 @@
         2LC5QAOrSZIM53k+EEIo/QqlHyyKb3Tbs/gCAAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="toolStripButton2.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnItalic.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton2.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnItalic.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton2.Text" xml:space="preserve">
+  <data name="btnItalic.Text" xml:space="preserve">
     <value>toolStripButton2</value>
   </data>
   <data name="toolStripLabel4.Size" type="System.Drawing.Size, System.Drawing">
@@ -223,7 +192,7 @@
   <data name="toolStripLabel4.Text" xml:space="preserve">
     <value>   </value>
   </data>
-  <data name="toolStripButton3.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnUnderline.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFFSURBVDhPldNLKwVhHMfxOW4RykIuyatA5AXI5SwteAc2
@@ -235,13 +204,13 @@
         AAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="toolStripButton3.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnUnderline.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton3.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnUnderline.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton3.Text" xml:space="preserve">
+  <data name="btnUnderline.Text" xml:space="preserve">
     <value>toolStripButton3</value>
   </data>
   <data name="toolStripLabel5.Size" type="System.Drawing.Size, System.Drawing">
@@ -324,13 +293,10 @@
     <value>toolStripButton6</value>
   </data>
   <data name="toolStripLabel9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>13, 39</value>
+    <value>13, 15</value>
   </data>
   <data name="toolStripLabel9.Text" xml:space="preserve">
     <value>  </value>
-  </data>
-  <data name="toolStripSeparator3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>6, 42</value>
   </data>
   <metadata name="toolStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
@@ -339,12 +305,25 @@
   <data name="toolStrip1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
+  <data name="toolStripLabel11.Size" type="System.Drawing.Size, System.Drawing">
+    <value>13, 39</value>
+  </data>
+  <data name="toolStripLabel11.Text" xml:space="preserve">
+    <value>  </value>
+  </data>
+  <data name="toolStripLabel10.Size" type="System.Drawing.Size, System.Drawing">
+    <value>13, 39</value>
+  </data>
+  <data name="toolStripLabel10.Text" xml:space="preserve">
+    <value>  </value>
+  </data>
   <data name="toolStrip1.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
   <data name="toolStrip1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>673, 42</value>
+    <value>568, 42</value>
   </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="toolStrip1.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
@@ -361,19 +340,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;toolStrip1.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="toolStripLabel10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>13, 39</value>
-  </data>
-  <data name="toolStripLabel10.Text" xml:space="preserve">
-    <value>  </value>
-  </data>
-  <data name="toolStripLabel11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>13, 39</value>
-  </data>
-  <data name="toolStripLabel11.Text" xml:space="preserve">
-    <value>  </value>
+    <value>0</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -382,10 +349,7 @@
     <value>6, 13</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>673, 42</value>
-  </data>
-  <data name="$this.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
+    <value>568, 42</value>
   </data>
   <data name="$this.StartPosition" type="System.Windows.Forms.FormStartPosition, System.Windows.Forms">
     <value>CenterParent</value>
@@ -423,10 +387,10 @@
   <data name="&gt;&gt;toolStripLabel2.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton1.Name" xml:space="preserve">
-    <value>toolStripButton1</value>
+  <data name="&gt;&gt;btnBold.Name" xml:space="preserve">
+    <value>btnBold</value>
   </data>
-  <data name="&gt;&gt;toolStripButton1.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnBold.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel3.Name" xml:space="preserve">
@@ -435,10 +399,10 @@
   <data name="&gt;&gt;toolStripLabel3.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton2.Name" xml:space="preserve">
-    <value>toolStripButton2</value>
+  <data name="&gt;&gt;btnItalic.Name" xml:space="preserve">
+    <value>btnItalic</value>
   </data>
-  <data name="&gt;&gt;toolStripButton2.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnItalic.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel4.Name" xml:space="preserve">
@@ -447,10 +411,10 @@
   <data name="&gt;&gt;toolStripLabel4.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton3.Name" xml:space="preserve">
-    <value>toolStripButton3</value>
+  <data name="&gt;&gt;btnUnderline.Name" xml:space="preserve">
+    <value>btnUnderline</value>
   </data>
-  <data name="&gt;&gt;toolStripButton3.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnUnderline.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel5.Name" xml:space="preserve">
@@ -507,22 +471,16 @@
   <data name="&gt;&gt;toolStripLabel9.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripSeparator3.Name" xml:space="preserve">
-    <value>toolStripSeparator3</value>
+  <data name="&gt;&gt;toolStripLabel11.Name" xml:space="preserve">
+    <value>toolStripLabel11</value>
   </data>
-  <data name="&gt;&gt;toolStripSeparator3.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;toolStripLabel11.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel10.Name" xml:space="preserve">
     <value>toolStripLabel10</value>
   </data>
   <data name="&gt;&gt;toolStripLabel10.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;toolStripLabel11.Name" xml:space="preserve">
-    <value>toolStripLabel11</value>
-  </data>
-  <data name="&gt;&gt;toolStripLabel11.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
