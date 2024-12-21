@@ -251,6 +251,7 @@
             this.btnSelection.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnSelection, "Select");
             this.btnSelection.UseVisualStyleBackColor = true;
+            this.btnSelection.Click += new System.EventHandler(this.btnSelection_Click);
             // 
             // btn4PointStar
             // 

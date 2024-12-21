@@ -27,7 +27,7 @@ namespace Demo_Paint
         int index = 0;
 
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
-        float startPoint;
+        
         private List<DrawLine> lines = new List<DrawLine>();
         //các biến undo, redo
         Stack<Bitmap> undoStack = new Stack<Bitmap>();
@@ -41,8 +41,19 @@ namespace Demo_Paint
         private int padding = 5;
         private List<Tuple<Rectangle, string>> textBoxes = new List<Tuple<Rectangle, string>>();
         private string currentAlignment;
+        //Các biến cho Selection
+        private enum SelectionMode { Rectangle, FreeForm }
+        private SelectionMode currentMode = SelectionMode.Rectangle; // Mặc định chọn hình chữ nhật
+
+        private bool isSelecting = false; // Trạng thái vẽ vùng chọn
+        private Point startPoint; // Điểm bắt đầu vùng chọn
+        private Rectangle selectionRectangle; // Hình chữ nhật vùng chọn
+
+        private List<Point> freeFormPoints; // Danh sách điểm cho hình tự do
+        private Region freeFormRegion; // Vùng chọn hình tự do
 
 
+        //Form cho font
         Form3 fontDialog = new Form3();
         
         public Form1()
@@ -53,8 +64,10 @@ namespace Demo_Paint
             InitializeCanvas();
             fontDialog.FormBorderStyle = FormBorderStyle.None;
             fontDialog.Owner = this;
+
+            freeFormPoints = new List<Point>(); // Khởi tạo danh sách
         }
-        
+
         public class DrawLine
         {
             public Point StartPoint { get; set; }
@@ -120,8 +133,38 @@ namespace Demo_Paint
             paint = true;
             py = e.Location;
             SaveState();
+            if (index == 7)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    isSelecting = true;
 
-            canvas.Invalidate();
+                    if (currentMode == SelectionMode.Rectangle)
+                    {
+                        // Chế độ hình chữ nhật
+                        startPoint = e.Location;
+                        selectionRectangle = new Rectangle(e.Location, new Size(0, 0));
+                    }
+
+                    canvas.Invalidate();
+                }
+            }
+            if (index == 8)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    isSelecting = true;
+                    if (currentMode == SelectionMode.FreeForm)
+                    {
+                        if (freeFormPoints == null)
+                        {
+                            freeFormPoints = new List<Point>(); // Đảm bảo khởi tạo nếu chưa có
+                        }
+                        freeFormPoints.Add(e.Location); // Thêm điểm mới vào danh sách
+                    }
+                    canvas.Invalidate();
+                }
+            }
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -152,13 +195,50 @@ namespace Demo_Paint
                     py = px;
                 }
             }
+            if(isSelecting)
+            {
+                if (currentMode == SelectionMode.Rectangle)
+                {
+                    // Cập nhật kích thước hình chữ nhật
+                    int width = Math.Abs(e.X - startPoint.X);
+                    int height = Math.Abs(e.Y - startPoint.Y);
+                    int x = Math.Min(e.X, startPoint.X);
+                    int y = Math.Min(e.Y, startPoint.Y);
+
+                    selectionRectangle = new Rectangle(x, y, width, height);
+                }
+                else if (currentMode == SelectionMode.FreeForm)
+                {
+                    // Cập nhật đường vẽ tự do
+                    freeFormPoints.Add(e.Location);
+                }
+            }
             canvas.Invalidate();
         }
+        private bool isShapeClosed = false;
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
             paint = false;
+            if (isSelecting)
+            {
+                isSelecting = false;
+                if (currentMode == SelectionMode.Rectangle) { return; }
+                if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 1)
+                {
+                    // Ensure the shape is closed by adding the final point only once
+                    if (!isShapeClosed)
+                    {
+                        freeFormPoints.Add(e.Location); // Add the final point where the mouse was released
+                        isShapeClosed = true;
+                    }
+                    GraphicsPath path = new GraphicsPath();
+                    path.AddPolygon(freeFormPoints.ToArray());
+                    freeFormRegion = new Region(path);
+                    canvas.Invalidate(); // Redraw the canvas to show the closed shape
+                }
+                canvas.Invalidate();
+            }
         }
-
         private void canvas_MouseLeave(object sender, EventArgs e)
         {
             toolStripStatusLabel2.Text = "";
@@ -378,11 +458,15 @@ namespace Demo_Paint
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             btnSelection.Image = Properties.Resources.noun_dotted_rectangle11;
+            index = 7;
+            currentMode= SelectionMode.Rectangle;
         }
 
         private void toolStripMenuItem2_Click(object sender, EventArgs e)
         {
             btnSelection.Image = Properties.Resources.freeform1;
+            index = 8;
+            currentMode = SelectionMode.FreeForm;
         }
 
         private void canvas_MouseEnter(object sender, EventArgs e)
@@ -763,8 +847,44 @@ namespace Demo_Paint
 
                 DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, textBrush);
             }
+
+            if (currentMode == SelectionMode.Rectangle && isSelecting)
+            {
+                // Vẽ vùng chọn hình chữ nhật
+                using (Pen dashedPen = new Pen(Color.Black))
+                {
+                    dashedPen.DashStyle = DashStyle.Dash;
+                    e.Graphics.DrawRectangle(dashedPen, selectionRectangle);
+                }
+            }
+            if (currentMode == SelectionMode.FreeForm)
+            {
+                if (isSelecting && freeFormPoints.Count > 1)
+                {
+                    // Vẽ đường tự do khi đang vẽ
+                    using (Pen dashedPen = new Pen(Color.Black))
+                    {
+                        dashedPen.DashStyle = DashStyle.Dash;
+                        e.Graphics.DrawLines(dashedPen, freeFormPoints.ToArray());
+                    }
+                }
+                if (freeFormRegion != null)
+                {
+                    using (Pen solidPen = new Pen(Color.Black))
+                    {
+                        solidPen.DashStyle = DashStyle.Solid;
+                        GraphicsPath path = new GraphicsPath();
+                        path.AddPolygon(freeFormPoints.ToArray());
+                        e.Graphics.DrawPath(solidPen, path);
+                    }
+                }
+            }
         }
 
+        private void btnSelection_Click(object sender, EventArgs e)
+        {
+
+        }
 
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
