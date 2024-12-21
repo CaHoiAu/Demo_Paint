@@ -160,6 +160,9 @@
   <data name="btnBold.Text" xml:space="preserve">
     <value>toolStripButton1</value>
   </data>
+  <data name="btnBold.ToolTipText" xml:space="preserve">
+    <value>Bold</value>
+  </data>
   <data name="toolStripLabel3.Size" type="System.Drawing.Size, System.Drawing">
     <value>16, 39</value>
   </data>
@@ -185,6 +188,9 @@
   </data>
   <data name="btnItalic.Text" xml:space="preserve">
     <value>toolStripButton2</value>
+  </data>
+  <data name="btnItalic.ToolTipText" xml:space="preserve">
+    <value>Italic</value>
   </data>
   <data name="toolStripLabel4.Size" type="System.Drawing.Size, System.Drawing">
     <value>16, 39</value>
@@ -213,6 +219,9 @@
   <data name="btnUnderline.Text" xml:space="preserve">
     <value>toolStripButton3</value>
   </data>
+  <data name="btnUnderline.ToolTipText" xml:space="preserve">
+    <value>Underline</value>
+  </data>
   <data name="toolStripLabel5.Size" type="System.Drawing.Size, System.Drawing">
     <value>13, 39</value>
   </data>
@@ -228,7 +237,7 @@
   <data name="toolStripLabel6.Text" xml:space="preserve">
     <value>  </value>
   </data>
-  <data name="toolStripButton4.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnAlignLeft.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABbSURBVDhPzY+xDcAwCARJnwmzT4aJsqT5giiy34BEw0lX
@@ -236,14 +245,17 @@
         J6u1JHkCAAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="toolStripButton4.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnAlignLeft.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton4.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnAlignLeft.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton4.Text" xml:space="preserve">
+  <data name="btnAlignLeft.Text" xml:space="preserve">
     <value>toolStripButton4</value>
+  </data>
+  <data name="btnAlignLeft.ToolTipText" xml:space="preserve">
+    <value>Left align</value>
   </data>
   <data name="toolStripLabel7.Size" type="System.Drawing.Size, System.Drawing">
     <value>13, 39</value>
@@ -251,7 +263,7 @@
   <data name="toolStripLabel7.Text" xml:space="preserve">
     <value>  </value>
   </data>
-  <data name="toolStripButton5.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnAlignCenter.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACRSURBVDhPrdNBCoMwFIThbOyuoCfoCdoT9Ch6CQWF9pal
@@ -260,14 +272,17 @@
         AAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="toolStripButton5.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnAlignCenter.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton5.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnAlignCenter.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton5.Text" xml:space="preserve">
+  <data name="btnAlignCenter.Text" xml:space="preserve">
     <value>toolStripButton5</value>
+  </data>
+  <data name="btnAlignCenter.ToolTipText" xml:space="preserve">
+    <value>Center align</value>
   </data>
   <data name="toolStripLabel8.Size" type="System.Drawing.Size, System.Drawing">
     <value>13, 39</value>
@@ -275,7 +290,7 @@
   <data name="toolStripLabel8.Text" xml:space="preserve">
     <value>  </value>
   </data>
-  <data name="toolStripButton6.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="btnAlignRight.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABZSURBVDhPzY+7DUAhDAND/yZkH4ZBb0niggaOj5SGk64i
@@ -283,14 +298,17 @@
         UUVRzgAAAABJRU5ErkJggg==
 </value>
   </data>
-  <data name="toolStripButton6.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
+  <data name="btnAlignRight.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
   </data>
-  <data name="toolStripButton6.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="btnAlignRight.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 39</value>
   </data>
-  <data name="toolStripButton6.Text" xml:space="preserve">
+  <data name="btnAlignRight.Text" xml:space="preserve">
     <value>toolStripButton6</value>
+  </data>
+  <data name="btnAlignRight.ToolTipText" xml:space="preserve">
+    <value>Right align</value>
   </data>
   <data name="toolStripLabel9.Size" type="System.Drawing.Size, System.Drawing">
     <value>13, 15</value>
@@ -435,10 +453,10 @@
   <data name="&gt;&gt;toolStripLabel6.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton4.Name" xml:space="preserve">
-    <value>toolStripButton4</value>
+  <data name="&gt;&gt;btnAlignLeft.Name" xml:space="preserve">
+    <value>btnAlignLeft</value>
   </data>
-  <data name="&gt;&gt;toolStripButton4.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnAlignLeft.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel7.Name" xml:space="preserve">
@@ -447,10 +465,10 @@
   <data name="&gt;&gt;toolStripLabel7.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton5.Name" xml:space="preserve">
-    <value>toolStripButton5</value>
+  <data name="&gt;&gt;btnAlignCenter.Name" xml:space="preserve">
+    <value>btnAlignCenter</value>
   </data>
-  <data name="&gt;&gt;toolStripButton5.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnAlignCenter.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel8.Name" xml:space="preserve">
@@ -459,10 +477,10 @@
   <data name="&gt;&gt;toolStripLabel8.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripButton6.Name" xml:space="preserve">
-    <value>toolStripButton6</value>
+  <data name="&gt;&gt;btnAlignRight.Name" xml:space="preserve">
+    <value>btnAlignRight</value>
   </data>
-  <data name="&gt;&gt;toolStripButton6.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnAlignRight.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripLabel9.Name" xml:space="preserve">

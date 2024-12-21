@@ -15,6 +15,7 @@ namespace Demo_Paint
         public bool IsBold { get; private set; }
         public bool IsItalic { get; private set; }
         public bool IsUnderline { get; private set; }
+        public string TextAlign { get; private set; } // Thuộc tính lưu trữ căn chỉnh
 
         public Form3()
         {
@@ -79,6 +80,72 @@ namespace Demo_Paint
         private void btnUnderline_Click(object sender, EventArgs e)
         {
             IsUnderline = !IsUnderline;
+        }
+
+        private void btnAlignLeft_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripButton clickedButton)
+            {
+                // Lấy giá trị Tag của nút vừa nhấn
+                var groupTag = clickedButton.Tag;
+
+                // Bỏ chọn tất cả các nút có cùng Tag
+                foreach (ToolStripItem item in toolStrip1.Items)
+                {
+                    if (item is ToolStripButton button && button.Tag == groupTag)
+                    {
+                        button.Checked = false;
+                    }
+                }
+
+                // Đánh dấu nút vừa được nhấn
+                clickedButton.Checked = true;
+            }
+            TextAlign = "Left";
+        }
+
+        private void btnAlignCenter_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripButton clickedButton)
+            {
+                // Lấy giá trị Tag của nút vừa nhấn
+                var groupTag = clickedButton.Tag;
+
+                // Bỏ chọn tất cả các nút có cùng Tag
+                foreach (ToolStripItem item in toolStrip1.Items)
+                {
+                    if (item is ToolStripButton button && button.Tag == groupTag)
+                    {
+                        button.Checked = false;
+                    }
+                }
+
+                // Đánh dấu nút vừa được nhấn
+                clickedButton.Checked = true;
+            }
+            TextAlign = "Center";
+        }
+
+        private void btnAlignRight_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripButton clickedButton)
+            {
+                // Lấy giá trị Tag của nút vừa nhấn
+                var groupTag = clickedButton.Tag;
+
+                // Bỏ chọn tất cả các nút có cùng Tag
+                foreach (ToolStripItem item in toolStrip1.Items)
+                {
+                    if (item is ToolStripButton button && button.Tag == groupTag)
+                    {
+                        button.Checked = false;
+                    }
+                }
+
+                // Đánh dấu nút vừa được nhấn
+                clickedButton.Checked = true;
+            }
+            TextAlign = "Right";
         }
     }
 }

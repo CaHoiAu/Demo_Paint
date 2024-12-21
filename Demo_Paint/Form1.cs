@@ -11,6 +11,8 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Demo_Paint.Form3;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Demo_Paint
 {
@@ -38,6 +40,8 @@ namespace Demo_Paint
         private bool isTyping = false; // Cờ nhập văn bản
         private int padding = 5;
         private List<Tuple<Rectangle, string>> textBoxes = new List<Tuple<Rectangle, string>>();
+        private string currentAlignment;
+
 
         Form3 fontDialog = new Form3();
         
@@ -537,7 +541,11 @@ namespace Demo_Paint
             bool isCapsLock = Control.IsKeyLocked(Keys.CapsLock);
 
             if (!isTyping) return;
-
+            if (e.KeyCode == Keys.Space)
+            {
+                // Ngăn không cho phím Space hoạt động trên nút
+                e.SuppressKeyPress = true;
+            }
             if (e.KeyCode == Keys.Back && inputText.Length > 0)
             {
                 inputText = inputText.Substring(0, inputText.Length - 1);
@@ -565,7 +573,25 @@ namespace Demo_Paint
             }
             else
             {
-                char inputChar = ConvertKeyToChar(e.KeyCode, e.Shift);
+                bool isShiftPressed = e.Shift;
+
+                // Chuyển đổi phím KeyCode thành ký tự
+                char inputChar = ConvertKeyToChar(e.KeyCode, isShiftPressed);
+
+                // Áp dụng quy tắc: Khi Shift + Caps Lock được nhấn thì không viết hoa
+                if (isCapsLock && !isShiftPressed)
+                {
+                    inputChar = char.ToUpper(inputChar);
+                }
+                else if (isShiftPressed && !isCapsLock)
+                {
+                    inputChar = char.ToUpper(inputChar);
+                }
+                else
+                {
+                    inputChar = char.ToLower(inputChar);
+                }
+
                 if (inputChar != '\0') inputText += inputChar;
             }
 
@@ -624,7 +650,6 @@ namespace Demo_Paint
             {
                 fontDialog.SelectedFont = "Arial";
             }
-
             if (string.IsNullOrEmpty(fontDialog.SelectedFontSize))
             {
                 fontDialog.SelectedFontSize = "14";
@@ -648,6 +673,7 @@ namespace Demo_Paint
             Color txtColor = pic_ColorStroke.BackColor;
             textBrush = new SolidBrush(txtColor);
             textFont = new Font(fontDialog.GetFontFamily(), fontDialog.GetBrushSize(), style);
+            currentAlignment = fontDialog.TextAlign;
 
             this.Invalidate(); // Gọi sự kiện vẽ lại
 
@@ -667,11 +693,11 @@ namespace Demo_Paint
                 // Đo chiều rộng của dòng tạm
                 SizeF textSize = g.MeasureString(tempLine, font);
 
-                if (textSize.Width > maxWidth)
+                if (textSize.Width > maxWidth || c == '\n') // Thêm dòng mới khi gặp ký tự xuống dòng
                 {
-                    // Nếu vượt quá chiều rộng, thêm dòng hiện tại vào danh sách
-                    lines.Add(currentLine);
-                    currentLine = c.ToString(); // Bắt đầu dòng mới
+                    // Nếu vượt quá chiều rộng hoặc gặp ký tự xuống dòng
+                    lines.Add(currentLine.TrimEnd());
+                    currentLine = c == '\n' ? "" : c.ToString(); // Bắt đầu dòng mới
                 }
                 else
                 {
@@ -679,18 +705,40 @@ namespace Demo_Paint
                 }
             }
 
-            // Thêm dòng cuối cùng
             if (!string.IsNullOrEmpty(currentLine))
             {
-                lines.Add(currentLine);
+                lines.Add(currentLine.TrimEnd());
+            }
+            StringFormat stringFormat = new StringFormat();
+            switch (currentAlignment)
+            {
+                case "Left":
+                    stringFormat.Alignment = StringAlignment.Near; // Căn trái
+                    break;
+                case "Center":
+                    stringFormat.Alignment = StringAlignment.Center; // Căn giữa
+                    break;
+                case "Right":
+                    stringFormat.Alignment = StringAlignment.Far; // Căn phải
+                    break;
+                default:
+                    stringFormat.Alignment = StringAlignment.Near; // Mặc định căn trái
+                    break;
             }
 
-            // Vẽ từng dòng trong hình chữ nhật
+            // Cấu hình StringFormat
             float y = rect.Y + padding; // Vị trí Y ban đầu
             foreach (string line in lines)
             {
                 if (y + font.Height > rect.Bottom) break; // Nếu vượt quá chiều cao, dừng vẽ
-                g.DrawString(line, font, brush, rect.X + padding, y);
+
+                // Xác định hình chữ nhật cho từng dòng
+                RectangleF lineRect = new RectangleF(rect.X + padding, y, rect.Width - 2 * padding, font.Height);
+
+                // Vẽ dòng hiện tại với căn chỉnh
+                g.DrawString(line, font, brush, lineRect, stringFormat);
+
+                // Chuyển xuống dòng tiếp theo
                 y += font.Height;
             }
         }

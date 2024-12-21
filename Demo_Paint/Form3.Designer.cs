@@ -42,11 +42,11 @@
             this.toolStripLabel5 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel6 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
+            this.btnAlignLeft = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel7 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
+            this.btnAlignCenter = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel8 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripButton6 = new System.Windows.Forms.ToolStripButton();
+            this.btnAlignRight = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel9 = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel11 = new System.Windows.Forms.ToolStripLabel();
@@ -85,6 +85,7 @@
             // 
             // btnBold
             // 
+            this.btnBold.CheckOnClick = true;
             this.btnBold.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             resources.ApplyResources(this.btnBold, "btnBold");
             this.btnBold.Name = "btnBold";
@@ -97,6 +98,7 @@
             // 
             // btnItalic
             // 
+            this.btnItalic.CheckOnClick = true;
             this.btnItalic.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             resources.ApplyResources(this.btnItalic, "btnItalic");
             this.btnItalic.Name = "btnItalic";
@@ -109,6 +111,7 @@
             // 
             // btnUnderline
             // 
+            this.btnUnderline.CheckOnClick = true;
             this.btnUnderline.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             resources.ApplyResources(this.btnUnderline, "btnUnderline");
             this.btnUnderline.Name = "btnUnderline";
@@ -129,33 +132,42 @@
             this.toolStripLabel6.Name = "toolStripLabel6";
             resources.ApplyResources(this.toolStripLabel6, "toolStripLabel6");
             // 
-            // toolStripButton4
+            // btnAlignLeft
             // 
-            this.toolStripButton4.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            resources.ApplyResources(this.toolStripButton4, "toolStripButton4");
-            this.toolStripButton4.Name = "toolStripButton4";
+            this.btnAlignLeft.CheckOnClick = true;
+            this.btnAlignLeft.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            resources.ApplyResources(this.btnAlignLeft, "btnAlignLeft");
+            this.btnAlignLeft.Name = "btnAlignLeft";
+            this.btnAlignLeft.Tag = "Group Align";
+            this.btnAlignLeft.Click += new System.EventHandler(this.btnAlignLeft_Click);
             // 
             // toolStripLabel7
             // 
             this.toolStripLabel7.Name = "toolStripLabel7";
             resources.ApplyResources(this.toolStripLabel7, "toolStripLabel7");
             // 
-            // toolStripButton5
+            // btnAlignCenter
             // 
-            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            resources.ApplyResources(this.toolStripButton5, "toolStripButton5");
-            this.toolStripButton5.Name = "toolStripButton5";
+            this.btnAlignCenter.CheckOnClick = true;
+            this.btnAlignCenter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            resources.ApplyResources(this.btnAlignCenter, "btnAlignCenter");
+            this.btnAlignCenter.Name = "btnAlignCenter";
+            this.btnAlignCenter.Tag = "Group Align";
+            this.btnAlignCenter.Click += new System.EventHandler(this.btnAlignCenter_Click);
             // 
             // toolStripLabel8
             // 
             this.toolStripLabel8.Name = "toolStripLabel8";
             resources.ApplyResources(this.toolStripLabel8, "toolStripLabel8");
             // 
-            // toolStripButton6
+            // btnAlignRight
             // 
-            this.toolStripButton6.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            resources.ApplyResources(this.toolStripButton6, "toolStripButton6");
-            this.toolStripButton6.Name = "toolStripButton6";
+            this.btnAlignRight.CheckOnClick = true;
+            this.btnAlignRight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            resources.ApplyResources(this.btnAlignRight, "btnAlignRight");
+            this.btnAlignRight.Name = "btnAlignRight";
+            this.btnAlignRight.Tag = "Group Align";
+            this.btnAlignRight.Click += new System.EventHandler(this.btnAlignRight_Click);
             // 
             // toolStripLabel9
             // 
@@ -183,11 +195,11 @@
             this.toolStripLabel5,
             this.toolStripSeparator2,
             this.toolStripLabel6,
-            this.toolStripButton4,
+            this.btnAlignLeft,
             this.toolStripLabel7,
-            this.toolStripButton5,
+            this.btnAlignCenter,
             this.toolStripLabel8,
-            this.toolStripButton6,
+            this.btnAlignRight,
             this.toolStripLabel9});
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.toolStrip1_ItemClicked);
@@ -233,11 +245,11 @@
         private System.Windows.Forms.ToolStripLabel toolStripLabel5;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripLabel toolStripLabel6;
-        private System.Windows.Forms.ToolStripButton toolStripButton4;
+        private System.Windows.Forms.ToolStripButton btnAlignLeft;
         private System.Windows.Forms.ToolStripLabel toolStripLabel7;
-        private System.Windows.Forms.ToolStripButton toolStripButton5;
+        private System.Windows.Forms.ToolStripButton btnAlignCenter;
         private System.Windows.Forms.ToolStripLabel toolStripLabel8;
-        private System.Windows.Forms.ToolStripButton toolStripButton6;
+        private System.Windows.Forms.ToolStripButton btnAlignRight;
         private System.Windows.Forms.ToolStripLabel toolStripLabel9;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripLabel toolStripLabel11;
