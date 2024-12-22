@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -51,6 +52,14 @@ namespace Demo_Paint
 
         private List<Point> freeFormPoints; // Danh sách điểm cho hình tự do
         private Region freeFormRegion; // Vùng chọn hình tự do
+        private bool isDrawingSelection = false;  // Add this field to track if we're currently drawing a selection
+        private Rectangle tempSelectionRect;
+        private bool selectionToolActive = false;
+        //Thao tác vs vùng selection
+        private Bitmap copiedRegionBitmap = null; // To store the copied region bitmap
+        private Point pastePosition; // To store the paste position
+        private bool isMoving = false; // Flag to indicate if a region is being moved
+        private Rectangle currentSelectionRectangle; // For drawing the current selection rectangle
 
 
         //Form cho font
@@ -128,114 +137,261 @@ namespace Demo_Paint
                 return customCursor;
             }
         }
+        private void ClearOriginalArea()
+        {
+            if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
+            {
+                using (Graphics g = Graphics.FromImage(bm))
+                {
+                    g.FillRectangle(Brushes.White, selectionRectangle);
+                }
+            }
+            else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+            {
+                using (Graphics g = Graphics.FromImage(bm))
+                {
+                    GraphicsPath path = new GraphicsPath();
+                    path.AddPolygon(freeFormPoints.ToArray());
+                    g.FillPath(Brushes.White, path);
+                }
+            }
+        }
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
             paint = true;
             py = e.Location;
             SaveState();
-            if (index == 7)
-            {
-                if (e.Button == MouseButtons.Left)
-                {
-                    isSelecting = true;
 
+            if (selectionToolActive)
+            {
+                if (!isSelectionInRegion(e.Location))
+                {
+                    // If there was a previous selection, finalize it
+                    if (copiedRegionBitmap != null)
+                    {
+                        ClearOriginalArea();
+                        PasteCopiedRegion(new Point(selectionRectangle.X, selectionRectangle.Y));
+                        copiedRegionBitmap = null;
+                        selectionRectangle = Rectangle.Empty;
+                        freeFormPoints.Clear();
+                    }
+                    // Start new selection
+                    isSelecting = true;
+                    startPoint = e.Location;
                     if (currentMode == SelectionMode.Rectangle)
                     {
-                        // Chế độ hình chữ nhật
-                        startPoint = e.Location;
                         selectionRectangle = new Rectangle(e.Location, new Size(0, 0));
                     }
-
-                    canvas.Invalidate();
-                }
-            }
-            if (index == 8)
-            {
-                if (e.Button == MouseButtons.Left)
-                {
-                    isSelecting = true;
-                    if (currentMode == SelectionMode.FreeForm)
+                    else if (currentMode == SelectionMode.FreeForm)
                     {
-                        if (freeFormPoints == null)
-                        {
-                            freeFormPoints = new List<Point>(); // Đảm bảo khởi tạo nếu chưa có
-                        }
-                        freeFormPoints.Add(e.Location); // Thêm điểm mới vào danh sách
+                        freeFormPoints = new List<Point> { e.Location };
+                        isShapeClosed = false;
                     }
-                    canvas.Invalidate();
                 }
+                else
+                {
+                    isMoving = true;
+                    pastePosition = e.Location;
+                    if (copiedRegionBitmap == null)
+                    {
+                        CopySelectedRegion();
+                        ClearOriginalArea();
+                    }
+                }
+                canvas.Invalidate();
             }
+        }
+        private bool isSelectionInRegion(Point clickLocation)
+        {
+            if (currentMode == SelectionMode.Rectangle)
+            {
+                return selectionRectangle.Contains(clickLocation);
+            }
+            else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+            {
+                GraphicsPath path = new GraphicsPath();
+                path.AddPolygon(freeFormPoints.ToArray());
+                return path.IsVisible(clickLocation);
+            }
+            return false;
+        }
+        private void ResetFreeFormSelection()
+        {
+            freeFormPoints.Clear();
+            freeFormRegion.Dispose();
+            freeFormRegion = null;
+            isSelecting = false;
+            canvas.Invalidate();
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            string s;
-            s = e.X.ToString() + ", " + e.Y.ToString() + "px";
-            toolStripStatusLabel2.Text = s;
+            // Update mouse coordinates in the status bar
+            toolStripStatusLabel2.Text = $"{e.X}, {e.Y}px";
 
-            if (paint)
+            // Handle drawing tools (pen or eraser)
+            if (paint && (index == 1 || index == 2))
             {
-                if (index == 1)
+                // Skip selection logic if drawing
+                if (index == 1) // Pen tool
                 {
-                    Pen p = new Pen(pic_ColorStroke.BackColor, brushsize);
-                    p.StartCap = LineCap.Round;
-                    p.EndCap = LineCap.Round;
-                    p.LineJoin = LineJoin.Round;
+                    Pen p = new Pen(pic_ColorStroke.BackColor, brushsize)
+                    {
+                        StartCap = LineCap.Round,
+                        EndCap = LineCap.Round,
+                        LineJoin = LineJoin.Round
+                    };
                     px = e.Location;
                     g.DrawLine(p, px, py);
                     py = px;
                 }
-                if (index == 2)
+                else if (index == 2) // Eraser tool
                 {
-                    Pen eraser = new Pen(Color.White, brushsize);
-                    eraser.StartCap = LineCap.Round;
-                    eraser.EndCap = LineCap.Round;
-                    eraser.LineJoin = LineJoin.Round;
+                    Pen eraser = new Pen(Color.White, brushsize)
+                    {
+                        StartCap = LineCap.Round,
+                        EndCap = LineCap.Round,
+                        LineJoin = LineJoin.Round
+                    };
                     px = e.Location;
                     g.DrawLine(eraser, px, py);
                     py = px;
                 }
-            }
-            if(isSelecting)
-            {
-                if (currentMode == SelectionMode.Rectangle)
-                {
-                    // Cập nhật kích thước hình chữ nhật
-                    int width = Math.Abs(e.X - startPoint.X);
-                    int height = Math.Abs(e.Y - startPoint.Y);
-                    int x = Math.Min(e.X, startPoint.X);
-                    int y = Math.Min(e.Y, startPoint.Y);
 
-                    selectionRectangle = new Rectangle(x, y, width, height);
-                }
-                else if (currentMode == SelectionMode.FreeForm)
+                canvas.Invalidate(); // Redraw the canvas
+                return; // Stop here to avoid interfering with selection logic
+            }
+            if (selectionToolActive)
+            {
+                if (isMoving)
                 {
-                    // Cập nhật đường vẽ tự do
-                    freeFormPoints.Add(e.Location);
+                    int dx = e.X - pastePosition.X;
+                    int dy = e.Y - pastePosition.Y;
+
+                    // Move both the selection rectangle and freeform points
+                    selectionRectangle.Offset(dx, dy);
+
+                    // Move all freeform points
+                    if (currentMode == SelectionMode.FreeForm)
+                    {
+                        for (int i = 0; i < freeFormPoints.Count; i++)
+                        {
+                            freeFormPoints[i] = new Point(
+                                freeFormPoints[i].X + dx,
+                                freeFormPoints[i].Y + dy
+                            );
+                        }
+                    }
+
+                    pastePosition = e.Location;
+                    canvas.Invalidate();
+                }
+                else if (isSelecting)
+                {
+                    if (currentMode == SelectionMode.Rectangle)
+                    {
+                        Point endPoint = e.Location;
+                        selectionRectangle = new Rectangle(
+                            Math.Min(startPoint.X, endPoint.X),
+                            Math.Min(startPoint.Y, endPoint.Y),
+                            Math.Abs(startPoint.X - endPoint.X),
+                            Math.Abs(startPoint.Y - endPoint.Y)
+                        );
+                    }
+                    else if (currentMode == SelectionMode.FreeForm && !isShapeClosed)
+                    {
+                        freeFormPoints.Add(e.Location);
+                    }
+                    canvas.Invalidate();
                 }
             }
-            canvas.Invalidate();
         }
+        private void CopySelectedRegion()
+        {
+            if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
+            {
+                copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
+                using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                {
+                    g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                        selectionRectangle, GraphicsUnit.Pixel);
+                }
+            }
+            else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+            {
+                // Calculate bounding rectangle for the freeform selection
+                int minX = freeFormPoints.Min(p => p.X);
+                int minY = freeFormPoints.Min(p => p.Y);
+                int maxX = freeFormPoints.Max(p => p.X);
+                int maxY = freeFormPoints.Max(p => p.Y);
+                selectionRectangle = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+                copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
+                using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                {
+                    // Create path for clipping
+                    GraphicsPath path = new GraphicsPath();
+                    Point[] translatedPoints = freeFormPoints
+                        .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
+                        .ToArray();
+                    path.AddPolygon(translatedPoints);
+                    // Set clipping region
+                    g.SetClip(path);
+                    // Copy only the area inside the path
+                    g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                        selectionRectangle, GraphicsUnit.Pixel);
+                }
+            }
+        }
+
+        private void PasteCopiedRegion(Point pastePoint)
+        {
+            if (copiedRegionBitmap != null)
+            {
+                // Create a Graphics object to paste the copied region at the new location
+                using (Graphics g = Graphics.FromImage(bm))
+                {
+                    g.DrawImage(copiedRegionBitmap, pastePoint);
+                }
+
+                canvas.Invalidate(); // Redraw the canvas with the pasted region
+            }
+        }
+
+
         private bool isShapeClosed = false;
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
             paint = false;
-            if (isSelecting)
+            if (selectionToolActive)
             {
-                isSelecting = false;
-                if (currentMode == SelectionMode.Rectangle) { return; }
-                if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 1)
+                if (isSelecting)
                 {
-                    // Ensure the shape is closed by adding the final point only once
-                    if (!isShapeClosed)
+                    if (currentMode == SelectionMode.Rectangle)
                     {
-                        freeFormPoints.Add(e.Location); // Add the final point where the mouse was released
-                        isShapeClosed = true;
+                        Point endPoint = e.Location;
+                        selectionRectangle = new Rectangle(
+                            Math.Min(startPoint.X, endPoint.X),
+                            Math.Min(startPoint.Y, endPoint.Y),
+                            Math.Abs(startPoint.X - endPoint.X),
+                            Math.Abs(startPoint.Y - endPoint.Y)
+                        );
                     }
-                    GraphicsPath path = new GraphicsPath();
-                    path.AddPolygon(freeFormPoints.ToArray());
-                    freeFormRegion = new Region(path);
-                    canvas.Invalidate(); // Redraw the canvas to show the closed shape
+                    else if (currentMode == SelectionMode.FreeForm)
+                    {
+                        if (!isShapeClosed)
+                        {
+                            freeFormPoints.Add(e.Location);
+                            isShapeClosed = true;
+                            // Calculate bounding rectangle for the freeform selection
+                            int minX = freeFormPoints.Min(p => p.X);
+                            int minY = freeFormPoints.Min(p => p.Y);
+                            int maxX = freeFormPoints.Max(p => p.X);
+                            int maxY = freeFormPoints.Max(p => p.Y);
+                            selectionRectangle = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+                        }
+                    }
+                    isSelecting = false;
                 }
+                isMoving = false;
                 canvas.Invalidate();
             }
         }
@@ -272,6 +428,13 @@ namespace Demo_Paint
                 isTyping = false; // Tắt chế độ nhập
                 inputText = ""; // Xóa văn bản đang nhập (sau khi đã lưu)
                 canvas.Invalidate(); // Yêu cầu vẽ lại canvas để xóa khung hình chữ nhật
+            }
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
             }
         }
         private Bitmap ResizeIcon(Bitmap originalIcon, int width, int height)
@@ -314,6 +477,13 @@ namespace Demo_Paint
                 }
             }
             fontDialog.Hide(); // Ẩn form phụ
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
+            }
         }
         private void numUD_Size_ValueChanged(object sender, EventArgs e)
         {
@@ -365,6 +535,7 @@ namespace Demo_Paint
             {
                 Point point = set_point(canvas, e.Location);
                 Fill(bm, point.X,point.Y,pic_ColorFill.BackColor);
+                canvas.Invalidate();  // Add this line to update immediately
             }
             else if (index == 4)
             {
@@ -427,6 +598,13 @@ namespace Demo_Paint
                 this.Cursor = customCursor;
             }
             fontDialog.Hide(); // Ẩn form phụ
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
+            }
         }
 
         private void toolStripMenuItem8_Click(object sender, EventArgs e)
@@ -460,6 +638,7 @@ namespace Demo_Paint
             btnSelection.Image = Properties.Resources.noun_dotted_rectangle11;
             index = 7;
             currentMode= SelectionMode.Rectangle;
+            selectionToolActive = true;
         }
 
         private void toolStripMenuItem2_Click(object sender, EventArgs e)
@@ -467,6 +646,7 @@ namespace Demo_Paint
             btnSelection.Image = Properties.Resources.freeform1;
             index = 8;
             currentMode = SelectionMode.FreeForm;
+            selectionToolActive = true;
         }
 
         private void canvas_MouseEnter(object sender, EventArgs e)
@@ -515,6 +695,13 @@ namespace Demo_Paint
                 this.Cursor = customCursor;
             }
             fontDialog.Hide(); // Ẩn form phụ
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
+            }
         }
 
         private void btnMagnifier_Click(object sender, EventArgs e)
@@ -531,6 +718,13 @@ namespace Demo_Paint
                 this.Cursor = customCursor;
             }
             fontDialog.Hide(); // Ẩn form phụ
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
+            }
         }
         private void UpdateCanvasZoom()
         {
@@ -760,7 +954,13 @@ namespace Demo_Paint
             currentAlignment = fontDialog.TextAlign;
 
             this.Invalidate(); // Gọi sự kiện vẽ lại
-
+            selectionToolActive = false;
+            if (!selectionToolActive)
+            {
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                canvas.Invalidate();
+            }
         }
         // Phương thức vẽ hình chữ nhật nét đứt và văn bản
         private void DrawTextInRectangle(Graphics g, string text, Rectangle rect, Font font, Brush brush)
@@ -830,14 +1030,15 @@ namespace Demo_Paint
 
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawImage(bm, 0, 0);
-            // Vẽ tất cả các văn bản từ danh sách
+            e.Graphics.DrawImage(bm, 0, 0); // Draw the bitmap first
+
+            // Draw textboxes
             foreach (var textBox in textBoxes)
             {
                 DrawTextInRectangle(e.Graphics, textBox.Item2, textBox.Item1, textFont, textBrush);
             }
 
-            // Vẽ hình chữ nhật và văn bản đang nhập (nếu có)
+            // Draw the current text box if typing
             if (isTyping)
             {
                 using (Pen rectPen = new Pen(Color.Black, 1))
@@ -848,40 +1049,54 @@ namespace Demo_Paint
                 DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, textBrush);
             }
 
-            if (currentMode == SelectionMode.Rectangle && isSelecting)
+            // Draw rectangle selection only when selecting
+            if (isSelecting || selectionToolActive || isMoving)
             {
-                // Vẽ vùng chọn hình chữ nhật
-                using (Pen dashedPen = new Pen(Color.Black))
+                // Draw the moving content first
+                if (copiedRegionBitmap != null && selectionToolActive)  // Changed condition here
                 {
-                    dashedPen.DashStyle = DashStyle.Dash;
-                    e.Graphics.DrawRectangle(dashedPen, selectionRectangle);
-                }
-            }
-            if (currentMode == SelectionMode.FreeForm)
-            {
-                if (isSelecting && freeFormPoints.Count > 1)
-                {
-                    // Vẽ đường tự do khi đang vẽ
-                    using (Pen dashedPen = new Pen(Color.Black))
+                    if (currentMode == SelectionMode.FreeForm)
                     {
-                        dashedPen.DashStyle = DashStyle.Dash;
-                        e.Graphics.DrawLines(dashedPen, freeFormPoints.ToArray());
+                        using (GraphicsPath path = new GraphicsPath())
+                        {
+                            path.AddPolygon(freeFormPoints.ToArray());
+                            Region originalClip = e.Graphics.Clip;
+                            e.Graphics.SetClip(path);
+                            e.Graphics.DrawImage(copiedRegionBitmap, selectionRectangle.Location);
+                            e.Graphics.Clip = originalClip;
+                        }
+                    }
+                    else
+                    {
+                        e.Graphics.DrawImage(copiedRegionBitmap, selectionRectangle.Location);
                     }
                 }
-                if (freeFormRegion != null)
+                // Draw selection outline
+                using (Pen selectionPen = new Pen(Color.Black, 2) { DashStyle = DashStyle.Dash })
                 {
-                    using (Pen solidPen = new Pen(Color.Black))
+                    if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
                     {
-                        solidPen.DashStyle = DashStyle.Solid;
-                        GraphicsPath path = new GraphicsPath();
-                        path.AddPolygon(freeFormPoints.ToArray());
-                        e.Graphics.DrawPath(solidPen, path);
+                        e.Graphics.DrawRectangle(selectionPen, selectionRectangle);
+                    }
+                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 1)
+                    {
+                        e.Graphics.DrawPolygon(selectionPen, freeFormPoints.ToArray());
                     }
                 }
             }
         }
 
         private void btnSelection_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CopySelectedRegion();
+        }
+
+        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
         }
