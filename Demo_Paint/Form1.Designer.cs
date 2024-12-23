@@ -172,14 +172,14 @@
             // 
             this.cToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.cut;
             this.cToolStripMenuItem.Name = "cToolStripMenuItem";
-            this.cToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.cToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.cToolStripMenuItem.Text = "Cut";
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.copy;
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
@@ -187,7 +187,7 @@
             // 
             this.pasteToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources._6583091;
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.pasteToolStripMenuItem.Text = "Paste";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
             // 
@@ -870,6 +870,7 @@
             this.pic_ColorFill.Size = new System.Drawing.Size(46, 46);
             this.pic_ColorFill.TabIndex = 9;
             this.pic_ColorFill.UseVisualStyleBackColor = false;
+            this.pic_ColorFill.Click += new System.EventHandler(this.pic_ColorFill_Click);
             // 
             // btnColorFill
             // 

@@ -1101,6 +1101,11 @@ namespace Demo_Paint
 
         }
 
+        private void pic_ColorFill_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
             Color old_clr=bm.GetPixel(x, y);
