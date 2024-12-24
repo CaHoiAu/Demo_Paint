@@ -1,4 +1,7 @@
-﻿namespace Demo_Paint
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace Demo_Paint
 {
     partial class Form1
     {
@@ -42,7 +45,7 @@
             this.tooltip = new System.Windows.Forms.ToolTip(this.components);
             this.btnLine = new System.Windows.Forms.Button();
             this.btnFitWindow = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnCrop = new System.Windows.Forms.Button();
             this.btnLayers = new System.Windows.Forms.Button();
             this.btnSelection = new System.Windows.Forms.Button();
             this.btn4PointStar = new System.Windows.Forms.Button();
@@ -220,17 +223,18 @@
             this.tooltip.SetToolTip(this.btnFitWindow, "Fit to window");
             this.btnFitWindow.UseVisualStyleBackColor = false;
             // 
-            // button1
+            // btnCrop
             // 
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Image = global::Demo_Paint.Properties.Resources.crop11;
-            this.button1.Location = new System.Drawing.Point(92, 30);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(29, 29);
-            this.button1.TabIndex = 35;
-            this.tooltip.SetToolTip(this.button1, "Cut");
-            this.button1.UseVisualStyleBackColor = true;
+            this.btnCrop.FlatAppearance.BorderSize = 0;
+            this.btnCrop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnCrop.Image = global::Demo_Paint.Properties.Resources.crop11;
+            this.btnCrop.Location = new System.Drawing.Point(92, 30);
+            this.btnCrop.Name = "btnCrop";
+            this.btnCrop.Size = new System.Drawing.Size(29, 29);
+            this.btnCrop.TabIndex = 35;
+            this.tooltip.SetToolTip(this.btnCrop, "Crop");
+            this.btnCrop.UseVisualStyleBackColor = true;
+            this.btnCrop.Click += new System.EventHandler(this.btnCrop_Click);
             // 
             // btnLayers
             // 
@@ -483,7 +487,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.White;
-            this.panel1.Controls.Add(this.button1);
+            this.panel1.Controls.Add(this.btnCrop);
             this.panel1.Controls.Add(this.numUD_Size);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.toolStrip4);
@@ -949,9 +953,6 @@
             // 
             // canvas
             // 
-            this.canvas.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.canvas.BackColor = System.Drawing.Color.White;
             this.canvas.Location = new System.Drawing.Point(35, 116);
             this.canvas.Name = "canvas";
@@ -1077,7 +1078,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.NumericUpDown numUD_Size;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnCrop;
         private System.Windows.Forms.Button btnFitWindow;
         private System.Windows.Forms.Button btnText;
     }
