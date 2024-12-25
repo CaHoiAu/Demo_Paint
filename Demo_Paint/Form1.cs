@@ -43,6 +43,7 @@ namespace Demo_Paint
         }
         private Panel panelCanvas;
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
+
         private Rectangle GetScaledRectangle(Rectangle rect)
         {
             return new Rectangle(
@@ -99,8 +100,9 @@ namespace Demo_Paint
             this.panelCanvas = new Panel();
             this.panelCanvas.AutoScroll = true;  // Enable scrolling
             this.panelCanvas.Dock = DockStyle.Fill;  // Fill the available space
-            this.panelCanvas.AutoScrollMinSize = new Size(0, 0);  // Minimum scroll size
-
+            this.panelCanvas.BackColor = Color.LightGray;
+            this.panelCanvas.Padding = new Padding(0);
+            this.panelCanvas.Margin = new Padding(0);
             // Add the canvas to panel1 instead of directly to the form
             this.panelCanvas.Controls.Add(this.canvas);
 
@@ -134,6 +136,7 @@ namespace Demo_Paint
             g = Graphics.FromImage(bm);
             g.Clear(Color.White);
             canvas.Image = bm;
+            UpdateCanvasSize();
         }
         public class CustomCursor
         {
@@ -614,16 +617,16 @@ namespace Demo_Paint
         {
             if (index == 3)
             {
-                Point point = set_point(canvas, e.Location);
-                Fill(bm, point.X, point.Y, pic_ColorFill.BackColor);
-                canvas.Invalidate();  // Add this line to update immediately
+                Point imagePoint = GetImagePoint(e.Location); // Convert screen coordinates to image coordinates
+                Fill(bm, imagePoint.X, imagePoint.Y, pic_ColorFill.BackColor);
+                canvas.Invalidate();
             }
             else if (index == 4)
             {
-                Point point = set_point(canvas, e.Location);
-                if (point.X >= 0 && point.X < bm.Width && point.Y >= 0 && point.Y < bm.Height)
+                Point imagePoint = GetImagePoint(e.Location);
+                if (imagePoint.X >= 0 && imagePoint.X < bm.Width && imagePoint.Y >= 0 && imagePoint.Y < bm.Height)
                 {
-                    Color pickedClr = bm.GetPixel(point.X, point.Y);
+                    Color pickedClr = bm.GetPixel(imagePoint.X, imagePoint.Y);
                     pic_ColorStroke.BackColor = pickedClr;
                 }
             }
@@ -650,24 +653,23 @@ namespace Demo_Paint
             else if (index == 6) // Chế độ nhập văn bản
             {
                 // Lưu văn bản hiện tại vào Bitmap trước khi tạo khung mới
+                Point imagePoint = GetImagePoint(e.Location);
+
                 if (isTyping && !string.IsNullOrEmpty(inputText))
                 {
                     using (Graphics graphics = Graphics.FromImage(bm))
                     {
                         DrawTextInRectangle(graphics, inputText, textBoxRect, textFont, textBrush);
                     }
-
                     isTyping = false;
                     inputText = "";
                     canvas.Invalidate();
                 }
 
-                // Tạo khung văn bản mới
-                int rectWidth = 200; // Chiều rộng cố định
-                int rectHeight = 100; // Chiều cao ban đầu
-                textBoxRect = new Rectangle(e.X, e.Y, rectWidth, rectHeight);
+                int rectWidth = (int)(200 / zoomFactor); // Adjust width based on zoom
+                int rectHeight = (int)(100 / zoomFactor); // Adjust height based on zoom
+                textBoxRect = new Rectangle(imagePoint.X, imagePoint.Y, rectWidth, rectHeight);
 
-                // Bắt đầu nhập văn bản
                 isTyping = true;
                 canvas.Invalidate();
             }
@@ -836,7 +838,7 @@ namespace Demo_Paint
             // Calculate new dimensions
             int newWidth = (int)(bm.Width * zoomFactor);
             int newHeight = (int)(bm.Height * zoomFactor);
-
+            UpdateCanvasSize();
             // Update canvas size
             canvas.Width = newWidth;
             canvas.Height = newHeight;
@@ -871,21 +873,34 @@ namespace Demo_Paint
         }
         private void UpdateCanvasSize()
         {
-            if (canvas.Width <= 0 || canvas.Height <= 0)
-                return;
+            if (bm == null) return;
 
-            // Tạo Bitmap mới với kích thước mới của PictureBox
-            Bitmap newBitmap = new Bitmap(canvas.Width, canvas.Height);
-            Graphics newGraphics = Graphics.FromImage(newBitmap);
-            newGraphics.Clear(Color.White);
+            // Calculate scaled dimensions
+            int scaledWidth = (int)(bm.Width * zoomFactor);
+            int scaledHeight = (int)(bm.Height * zoomFactor);
 
-            // Sao chép nội dung của Bitmap cũ vào Bitmap mới
-            newGraphics.DrawImage(bm, 0, 0);
+            // Update canvas size
+            canvas.Width = scaledWidth;
+            canvas.Height = scaledHeight;
 
-            // Cập nhật lại Bitmap và Graphics
-            bm = newBitmap;
-            g = Graphics.FromImage(bm);
-            canvas.Image = bm;
+            // Calculate center position
+            int x = (panelCanvas.ClientSize.Width - canvas.Width) / 2;
+            int y = (panelCanvas.ClientSize.Height - canvas.Height) / 2;
+
+            // Ensure position is never negative
+            x = Math.Max(0, x);
+            y = Math.Max(0, y);
+
+            // Update canvas position
+            canvas.Location = new Point(x, y);
+
+            // Update scroll area
+            panelCanvas.AutoScrollMinSize = new Size(
+                Math.Max(scaledWidth, panelCanvas.ClientSize.Width),
+                Math.Max(scaledHeight, panelCanvas.ClientSize.Height)
+            );
+
+            canvas.Invalidate();
         }
 
         private void SaveState()
@@ -928,7 +943,8 @@ namespace Demo_Paint
 
                 bm = new Bitmap(previousState);
                 g = Graphics.FromImage(bm);
-                canvas.Size = bm.Size;
+                canvas.Width = (int)(bm.Width * zoomFactor);
+                canvas.Height = (int)(bm.Height * zoomFactor);
                 canvas.Image = bm;
 
                 canvas.Invalidate();
@@ -966,7 +982,8 @@ namespace Demo_Paint
 
                 bm = new Bitmap(nextState);
                 g = Graphics.FromImage(bm);
-                canvas.Size = bm.Size;
+                canvas.Width = (int)(bm.Width * zoomFactor);
+                canvas.Height = (int)(bm.Height * zoomFactor);
                 canvas.Image = bm;
 
                 canvas.Invalidate();

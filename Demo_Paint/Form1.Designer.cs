@@ -953,6 +953,7 @@ namespace Demo_Paint
             // 
             // canvas
             // 
+            this.canvas.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.canvas.BackColor = System.Drawing.Color.White;
             this.canvas.Location = new System.Drawing.Point(35, 116);
             this.canvas.Name = "canvas";
