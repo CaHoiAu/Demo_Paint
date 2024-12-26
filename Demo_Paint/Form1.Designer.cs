@@ -106,6 +106,7 @@ namespace Demo_Paint
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.canvas = new System.Windows.Forms.PictureBox();
+            this.layerPanel = new System.Windows.Forms.Panel();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUD_Size)).BeginInit();
@@ -222,6 +223,7 @@ namespace Demo_Paint
             this.btnFitWindow.TabIndex = 6;
             this.tooltip.SetToolTip(this.btnFitWindow, "Fit to window");
             this.btnFitWindow.UseVisualStyleBackColor = false;
+            this.btnFitWindow.Click += new System.EventHandler(this.btnFitWindow_Click);
             // 
             // btnCrop
             // 
@@ -487,6 +489,7 @@ namespace Demo_Paint
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.White;
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.btnCrop);
             this.panel1.Controls.Add(this.numUD_Size);
             this.panel1.Controls.Add(this.label6);
@@ -968,11 +971,20 @@ namespace Demo_Paint
             this.canvas.MouseMove += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseMove);
             this.canvas.MouseUp += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseUp);
             // 
+            // layerPanel
+            // 
+            this.layerPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.layerPanel.Location = new System.Drawing.Point(713, 111);
+            this.layerPanel.Name = "layerPanel";
+            this.layerPanel.Size = new System.Drawing.Size(200, 310);
+            this.layerPanel.TabIndex = 7;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(913, 450);
+            this.Controls.Add(this.layerPanel);
             this.Controls.Add(this.btnFitWindow);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.panel1);
@@ -983,7 +995,8 @@ namespace Demo_Paint
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Paint";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.menuStrip1.ResumeLayout(false);
@@ -1082,6 +1095,7 @@ namespace Demo_Paint
         private System.Windows.Forms.Button btnCrop;
         private System.Windows.Forms.Button btnFitWindow;
         private System.Windows.Forms.Button btnText;
+        private Panel layerPanel;
     }
 }
 

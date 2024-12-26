@@ -57,8 +57,9 @@ namespace Demo_Paint
 
         private List<DrawLine> lines = new List<DrawLine>();
         //các biến undo, redo
-        Stack<Bitmap> undoStack = new Stack<Bitmap>();
-        Stack<Bitmap> redoStack = new Stack<Bitmap>();
+        private Stack<SavedState> undoStack = new Stack<SavedState>();
+        private Stack<SavedState> redoStack = new Stack<SavedState>();
+        private int currentIndex = -1;
         //các biến text
         private Rectangle textBoxRect; // Hình chữ nhật chứa văn bản
         private string inputText = ""; // Văn bản nhập
@@ -68,6 +69,17 @@ namespace Demo_Paint
         private int padding = 5;
         private List<Tuple<Rectangle, string>> textBoxes = new List<Tuple<Rectangle, string>>();
         private string currentAlignment;
+        private List<TextObject> textObjects = new List<TextObject>(); // Add this field
+
+        // Add this class to store text information
+        private class TextObject
+        {
+            public string Text { get; set; }
+            public Rectangle Rect { get; set; }
+            public Font Font { get; set; }
+            public Color Color { get; set; }
+            public string Alignment { get; set; }
+        }
         //Các biến cho Selection
         private enum SelectionMode { Rectangle, FreeForm }
         private SelectionMode currentMode = SelectionMode.Rectangle; // Mặc định chọn hình chữ nhật
@@ -96,6 +108,7 @@ namespace Demo_Paint
             this.KeyPreview = true; // Đảm bảo Form nhận sự kiện KeyDown trước các control khác
 
             InitializeComponent();
+            this.canvas.Size= new Size(660, 376);
 
             this.panelCanvas = new Panel();
             this.panelCanvas.AutoScroll = true;  // Enable scrolling
@@ -103,11 +116,19 @@ namespace Demo_Paint
             this.panelCanvas.BackColor = Color.LightGray;
             this.panelCanvas.Padding = new Padding(0);
             this.panelCanvas.Margin = new Padding(0);
+            this.panelCanvas.Location = new Point(0, label1.Bottom);
+            this.panelCanvas.Size = new Size(
+                this.ClientSize.Width,
+                this.ClientSize.Height - label1.Bottom - statusStrip1.Height
+            );
+            this.panelCanvas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
             // Add the canvas to panel1 instead of directly to the form
             this.panelCanvas.Controls.Add(this.canvas);
 
             // Add panel1 to the form
             this.Controls.Add(this.panelCanvas);
+
 
             InitializeCanvas();
             fontDialog.FormBorderStyle = FormBorderStyle.None;
@@ -213,7 +234,15 @@ namespace Demo_Paint
             paint = true;
             Point imagePoint = GetImagePoint(e.Location);
             py = imagePoint;
-            SaveState();
+            if (index != 6 && textObjects.Count > 0)
+            {
+                CommitAllTexts();
+            }
+
+            if (index != 5) // Not magnifier
+            {
+                SaveState();
+            }
             if (index == 1 || index == 2)
             {
                 px = e.Location;
@@ -484,10 +513,34 @@ namespace Demo_Paint
             toolStripStatusLabel2.Text = "";
             this.Cursor = Cursors.Default;
         }
+        private void CommitAllTexts()
+        {
+            if (textObjects.Count > 0)
+            {
+                SaveState();
 
+                using (Graphics graphics = Graphics.FromImage(bm))
+                {
+                    foreach (var textObj in textObjects)
+                    {
+                        using (Brush brush = new SolidBrush(textObj.Color))
+                        {
+                            DrawTextInRectangle(graphics, textObj.Text, textObj.Rect, textObj.Font, brush);
+                        }
+                    }
+                }
+
+                textObjects.Clear(); // Clear the text objects after committing
+                canvas.Invalidate();
+            }
+        }
         private void btnPen_Click(object sender, EventArgs e)
         {
-            index = 1;
+            if (currentIndex == 6) // If switching from text tool
+            {
+                CommitAllTexts();
+            }
+            currentIndex = index = 1;
             if (sender is Button btn && btn.Image != null)
             {
 
@@ -650,27 +703,35 @@ namespace Demo_Paint
                     }
                 }
             }
-            else if (index == 6) // Chế độ nhập văn bản
+            if (index == 6) // Text mode
             {
-                // Lưu văn bản hiện tại vào Bitmap trước khi tạo khung mới
                 Point imagePoint = GetImagePoint(e.Location);
 
                 if (isTyping && !string.IsNullOrEmpty(inputText))
                 {
-                    using (Graphics graphics = Graphics.FromImage(bm))
+                    // Add the text to textObjects list instead of drawing directly
+                    TextObject textObj = new TextObject
                     {
-                        DrawTextInRectangle(graphics, inputText, textBoxRect, textFont, textBrush);
-                    }
+                        Text = inputText,
+                        Rect = textBoxRect,
+                        Font = textFont,
+                        Color = pic_ColorStroke.BackColor,
+                        Alignment = currentAlignment
+                    };
+                    textObjects.Add(textObj);
+
+                    SaveState();
                     isTyping = false;
                     inputText = "";
-                    canvas.Invalidate();
                 }
-
-                int rectWidth = (int)(200 / zoomFactor); // Adjust width based on zoom
-                int rectHeight = (int)(100 / zoomFactor); // Adjust height based on zoom
-                textBoxRect = new Rectangle(imagePoint.X, imagePoint.Y, rectWidth, rectHeight);
-
-                isTyping = true;
+                else
+                {
+                    int rectWidth = (int)(200 / zoomFactor);
+                    int rectHeight = (int)(100 / zoomFactor);
+                    textBoxRect = new Rectangle(imagePoint.X, imagePoint.Y, rectWidth, rectHeight);
+                    isTyping = true;
+                    inputText = "";
+                }
                 canvas.Invalidate();
             }
         }
@@ -861,6 +922,17 @@ namespace Demo_Paint
 
             canvas.Invalidate();
         }
+        private void CenterCanvas()
+        {
+            if (panelCanvas == null || canvas == null) return;
+
+            // Calculate center position
+            int x = Math.Max(0, (panelCanvas.ClientSize.Width - canvas.Width) / 2);
+            int y = Math.Max(0, (panelCanvas.ClientSize.Height - canvas.Height) / 2);
+
+            // Set canvas location
+            canvas.Location = new Point(x, y);
+        }
         private void Form1_Resize(object sender, EventArgs e)
         {
             if (fontDialog != null && !fontDialog.IsDisposed)
@@ -868,8 +940,11 @@ namespace Demo_Paint
                 Point btnPosition = btnText.PointToScreen(Point.Empty);
                 fontDialog.Location = new Point(btnPosition.X - 30, btnPosition.Y + 80);
             }
-            UpdateCanvasSize();
-
+            this.panelCanvas.Size = new Size(
+            this.ClientSize.Width,
+            this.ClientSize.Height - label1.Bottom - statusStrip1.Height
+            );
+            CenterCanvas();
         }
         private void UpdateCanvasSize()
         {
@@ -905,48 +980,60 @@ namespace Demo_Paint
 
         private void SaveState()
         {
-            if (bm != null)
+            if (index == 1 || index == 2 || index == 3 || index == 6) // Pen, Eraser, Fill, Text tools
             {
-                Bitmap savedState = new Bitmap(bm.Width, bm.Height);
-                using (Graphics gr = Graphics.FromImage(savedState))
+                if (bm != null && index != 5)
                 {
-                    gr.DrawImage(bm, 0, 0);
+                    Bitmap savedState = new Bitmap(bm.Width, bm.Height);
+                    using (Graphics gr = Graphics.FromImage(savedState))
+                    {
+                        // Draw the base bitmap
+                        gr.DrawImage(bm, 0, 0);
+
+                        // Draw all text objects onto the saved state
+                        foreach (var textObj in textObjects)
+                        {
+                            using (Brush brush = new SolidBrush(textObj.Color))
+                            {
+                                DrawTextInRectangle(gr, textObj.Text, textObj.Rect, textObj.Font, brush);
+                            }
+                        }
+                    }
+                    undoStack.Push(new SavedState { Bitmap = savedState, TextObjects = new List<TextObject>(textObjects) });
+                    redoStack.Clear();
                 }
-                undoStack.Push(savedState);
-                redoStack.Clear();
             }
         }
+        private class SavedState
+        {
+            public Bitmap Bitmap { get; set; }
+            public List<TextObject> TextObjects { get; set; }
+        }
+
         private void Undo()
         {
             if (undoStack.Count > 0)
             {
                 // Save current state to redo stack
-                Bitmap redoState = new Bitmap(bm.Width, bm.Height);
-                using (Graphics gr = Graphics.FromImage(redoState))
+                SavedState redoState = new SavedState
                 {
-                    gr.DrawImage(bm, 0, 0);
-                }
+                    Bitmap = new Bitmap(bm),
+                    TextObjects = new List<TextObject>(textObjects)
+                };
                 redoStack.Push(redoState);
 
                 // Get the previous state
-                Bitmap previousState = undoStack.Pop();
+                SavedState previousState = undoStack.Pop();
 
-                // Update canvas size and bitmap
-                if (bm != null)
-                {
-                    bm.Dispose();
-                }
-                if (g != null)
-                {
-                    g.Dispose();
-                }
+                // Update bitmap and text objects
+                if (bm != null) bm.Dispose();
+                if (g != null) g.Dispose();
 
-                bm = new Bitmap(previousState);
+                bm = new Bitmap(previousState.Bitmap);
                 g = Graphics.FromImage(bm);
-                canvas.Width = (int)(bm.Width * zoomFactor);
-                canvas.Height = (int)(bm.Height * zoomFactor);
-                canvas.Image = bm;
+                textObjects = new List<TextObject>(previousState.TextObjects);
 
+                canvas.Image = bm;
                 canvas.Invalidate();
             }
         }
@@ -960,32 +1047,25 @@ namespace Demo_Paint
             if (redoStack.Count > 0)
             {
                 // Save current state to undo stack
-                Bitmap undoState = new Bitmap(bm.Width, bm.Height);
-                using (Graphics gr = Graphics.FromImage(undoState))
+                SavedState undoState = new SavedState
                 {
-                    gr.DrawImage(bm, 0, 0);
-                }
+                    Bitmap = new Bitmap(bm),
+                    TextObjects = new List<TextObject>(textObjects)
+                };
                 undoStack.Push(undoState);
 
                 // Get the next state
-                Bitmap nextState = redoStack.Pop();
+                SavedState nextState = redoStack.Pop();
 
-                // Update canvas size and bitmap
-                if (bm != null)
-                {
-                    bm.Dispose();
-                }
-                if (g != null)
-                {
-                    g.Dispose();
-                }
+                // Update bitmap and text objects
+                if (bm != null) bm.Dispose();
+                if (g != null) g.Dispose();
 
-                bm = new Bitmap(nextState);
+                bm = new Bitmap(nextState.Bitmap);
                 g = Graphics.FromImage(bm);
-                canvas.Width = (int)(bm.Width * zoomFactor);
-                canvas.Height = (int)(bm.Height * zoomFactor);
-                canvas.Image = bm;
+                textObjects = new List<TextObject>(nextState.TextObjects);
 
+                canvas.Image = bm;
                 canvas.Invalidate();
             }
         }
@@ -1063,6 +1143,7 @@ namespace Demo_Paint
                 // Lưu vùng chữ nhật và văn bản vào danh sách
                 if (!string.IsNullOrEmpty(inputText))
                 {
+                    SaveState();
                     using (Graphics graphics = Graphics.FromImage(bm))
                     {
                         DrawTextInRectangle(graphics, inputText, textBoxRect, textFont, textBrush);
@@ -1078,6 +1159,7 @@ namespace Demo_Paint
             {
                 inputText = ""; // Hủy nhập
                 isTyping = false;
+                canvas.Invalidate();
             }
             else
             {
@@ -1153,7 +1235,15 @@ namespace Demo_Paint
 
         private void btnText_Click(object sender, EventArgs e)
         {
-            index = 6;
+            if (currentIndex != 6 && currentIndex != -1) // If switching to text from another tool
+            {
+                // Don't commit texts when switching to text tool
+                currentIndex = index = 6;
+            }
+            else
+            {
+                currentIndex = index = 6;
+            }
             if (string.IsNullOrEmpty(fontDialog.SelectedFont))
             {
                 fontDialog.SelectedFont = "Arial";
@@ -1265,9 +1355,12 @@ namespace Demo_Paint
             e.Graphics.DrawImage(bm, 0, 0, canvas.Width, canvas.Height);
 
             // Draw textboxes
-            foreach (var textBox in textBoxes)
+            foreach (var textObj in textObjects)
             {
-                DrawTextInRectangle(e.Graphics, textBox.Item2, textBox.Item1, textFont, textBrush);
+                using (Brush brush = new SolidBrush(textObj.Color))
+                {
+                    DrawTextInRectangle(e.Graphics, textObj.Text, textObj.Rect, textObj.Font, brush);
+                }
             }
 
             // Draw the current text box if typing
@@ -1275,10 +1368,19 @@ namespace Demo_Paint
             {
                 using (Pen rectPen = new Pen(Color.Black, 1))
                 {
-                    e.Graphics.DrawRectangle(rectPen, textBoxRect);
+                    Rectangle scaledRect = new Rectangle(
+                        (int)(textBoxRect.X * zoomFactor),
+                        (int)(textBoxRect.Y * zoomFactor),
+                        (int)(textBoxRect.Width * zoomFactor),
+                        (int)(textBoxRect.Height * zoomFactor)
+                    );
+                    e.Graphics.DrawRectangle(rectPen, scaledRect);
                 }
 
-                DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, textBrush);
+                if (!string.IsNullOrEmpty(inputText))
+                {
+                    DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, textBrush);
+                }
             }
 
             // Draw rectangle selection only when selecting
@@ -1848,6 +1950,37 @@ namespace Demo_Paint
         private void btnCrop_Click(object sender, EventArgs e)
         {
             CropSelection();
+        }
+
+        private void btnFitWindow_Click(object sender, EventArgs e)
+        {
+            zoomFactor = 1.0f;  // Reset to default zoom (100%)
+
+            // Reset canvas size to original bitmap dimensions
+            canvas.Width = bm.Width;
+            canvas.Height = bm.Height;
+
+            // Reset scroll position first
+            panelCanvas.AutoScrollPosition = Point.Empty;
+
+            // Update scroll area
+            panelCanvas.AutoScrollMinSize = new Size(
+                Math.Max(canvas.Width, panelCanvas.ClientSize.Width),
+                Math.Max(canvas.Height, panelCanvas.ClientSize.Height)
+            );
+
+            // Center the canvas
+            CenterCanvas();
+
+            // Update zoom level display
+            toolStripStatusLabel1.Text = "Zoom: 100%";
+
+            canvas.Invalidate();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
 
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
