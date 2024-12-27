@@ -6,7 +6,9 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text;
@@ -17,9 +19,99 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Demo_Paint
 {
-
     public partial class Form1 : Form
     {
+        public class Layer
+        {
+            public Bitmap Bitmap { get; set; }
+            public string Name { get; set; }
+            public bool Visible { get; set; }
+            public float Opacity { get; set; }
+            public List<TextObject> TextObjects { get; set; }
+            private bool[,] pixelMask;
+
+            public Layer(int width, int height, string name)
+            {
+                Bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                pixelMask = new bool[width, height];
+                using (Graphics g = Graphics.FromImage(Bitmap))
+                {
+                    g.Clear(Color.FromArgb(0, 0, 0, 0));  // Completely transparent
+                }
+                Name = name;
+                Visible = true;
+                Opacity = 1.0f;
+                TextObjects = new List<TextObject>();
+            }
+            public void DeleteRegion(Rectangle region)
+            {
+                using (Graphics g = Graphics.FromImage(Bitmap))
+                {
+                    g.CompositingMode = CompositingMode.SourceCopy;
+                    using (SolidBrush clearBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0)))
+                    {
+                        g.FillRectangle(clearBrush, region);
+                    }
+                    g.CompositingMode = CompositingMode.SourceOver;
+                }
+            }
+
+            public void DeleteRegion(GraphicsPath path)
+            {
+                using (Graphics g = Graphics.FromImage(Bitmap))
+                {
+                    g.CompositingMode = CompositingMode.SourceCopy;
+                    using (SolidBrush clearBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0)))
+                    {
+                        g.FillPath(clearBrush, path);
+                    }
+                    g.CompositingMode = CompositingMode.SourceOver;
+                }
+            }
+            public bool HasPixelAt(int x, int y)
+            {
+                if (x >= 0 && x < Bitmap.Width && y >= 0 && y < Bitmap.Height)
+                {
+                    return pixelMask[x, y];
+                }
+                return false;
+            }
+
+            public void SetPixel(int x, int y, Color color)
+            {
+                if (x >= 0 && x < Bitmap.Width && y >= 0 && y < Bitmap.Height)
+                {
+                    pixelMask[x, y] = true;
+                    Bitmap.SetPixel(x, y, color);
+                }
+            }
+        }
+        private List<Layer> layers;
+        private int currentLayerIndex;
+        private Layer CurrentLayer
+        {
+            get
+            {
+                // Add null check and bounds check
+                if (layers == null || layers.Count == 0)
+                {
+                    // Create a default layer if none exists
+                    Layer newLayer = new Layer(canvas.Width, canvas.Height, "Layer 1");
+                    layers = new List<Layer> { newLayer };
+                    currentLayerIndex = 0;
+                    UpdateLayerListUI();
+                    return newLayer;
+                }
+
+                // Ensure currentLayerIndex is valid
+                if (currentLayerIndex < 0 || currentLayerIndex >= layers.Count)
+                {
+                    currentLayerIndex = layers.Count - 1;  // Set to last layer
+                }
+
+                return layers[currentLayerIndex];
+            }
+        }
         Bitmap bm;
         Graphics g;
         bool paint = false;
@@ -41,7 +133,6 @@ namespace Demo_Paint
                 (int)(imagePoint.Y * zoomFactor)
             );
         }
-        private Panel panelCanvas;
         float zoomFactor = 1.0f; // Tỷ lệ phóng to/thu nhỏ (1.0 = 100%)
 
         private Rectangle GetScaledRectangle(Rectangle rect)
@@ -72,7 +163,7 @@ namespace Demo_Paint
         private List<TextObject> textObjects = new List<TextObject>(); // Add this field
 
         // Add this class to store text information
-        private class TextObject
+        public class TextObject
         {
             public string Text { get; set; }
             public Rectangle Rect { get; set; }
@@ -105,36 +196,69 @@ namespace Demo_Paint
 
         public Form1()
         {
-            this.KeyPreview = true; // Đảm bảo Form nhận sự kiện KeyDown trước các control khác
-
+            this.KeyPreview = true;
             InitializeComponent();
-            this.canvas.Size= new Size(660, 376);
 
-            this.panelCanvas = new Panel();
-            this.panelCanvas.AutoScroll = true;  // Enable scrolling
-            this.panelCanvas.Dock = DockStyle.Fill;  // Fill the available space
-            this.panelCanvas.BackColor = Color.LightGray;
-            this.panelCanvas.Padding = new Padding(0);
-            this.panelCanvas.Margin = new Padding(0);
-            this.panelCanvas.Location = new Point(0, label1.Bottom);
-            this.panelCanvas.Size = new Size(
-                this.ClientSize.Width,
-                this.ClientSize.Height - label1.Bottom - statusStrip1.Height
-            );
-            this.panelCanvas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Add the canvas to panel1 instead of directly to the form
+            // Initialize canvas
+            if (this.canvas == null)
+            {
+                this.canvas = new PictureBox();
+                this.canvas.BackColor = Color.White;
+                this.canvas.Size = new Size(1024, 800);
+                this.canvas.Location = new Point(0, 0);
+            }
             this.panelCanvas.Controls.Add(this.canvas);
 
-            // Add panel1 to the form
-            this.Controls.Add(this.panelCanvas);
+            // Initialize bitmap
+            bm = new Bitmap(canvas.Width, canvas.Height);
+            g = Graphics.FromImage(bm);
+            g.Clear(Color.White);
+            canvas.Image = bm;
 
+            // Initialize layers
+            layers = new List<Layer>();
 
-            InitializeCanvas();
+            Layer backgroundLayer = new Layer(canvas.Width, canvas.Height, "Background");
+            using (Graphics g = Graphics.FromImage(backgroundLayer.Bitmap))
+            {
+                g.Clear(Color.White);  // Make this layer white
+            }
+            layers.Add(backgroundLayer);
+
+            // Create and add the first drawing layer (transparent)
+            Layer layer1 = new Layer(canvas.Width, canvas.Height, "Layer 1");
+            layers.Add(layer1);
+
+            currentLayerIndex = 1;  // Set current layer to Layer 1
+
+            UpdateLayerListUI();
+            CenterCanvas();
             fontDialog.FormBorderStyle = FormBorderStyle.None;
             fontDialog.Owner = this;
 
             freeFormPoints = new List<Point>(); // Khởi tạo danh sách
+        }
+        private void InitializeLayers()
+        {
+            if (layers == null)
+                layers = new List<Layer>();
+
+            // Create the base layer
+            Layer baseLayer = new Layer(canvas.Width, canvas.Height, "Layer 1");
+
+            // Copy the current bitmap to the base layer if it exists
+            if (bm != null)
+            {
+                using (Graphics g = Graphics.FromImage(baseLayer.Bitmap))
+                {
+                    g.DrawImage(bm, 0, 0);
+                }
+            }
+
+            // Add the base layer
+            layers.Add(baseLayer);
+            currentLayerIndex = 0;
+
         }
 
         public class DrawLine
@@ -200,33 +324,23 @@ namespace Demo_Paint
         }
         private void ClearOriginalArea()
         {
-            if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
+            using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
             {
-                Rectangle scaledRect = new Rectangle(
-                    (int)(selectionRectangle.X * zoomFactor),
-                    (int)(selectionRectangle.Y * zoomFactor),
-                    (int)(selectionRectangle.Width * zoomFactor),
-                    (int)(selectionRectangle.Height * zoomFactor)
-                );
-
-                using (Graphics g = Graphics.FromImage(bm))
+                g.CompositingMode = CompositingMode.SourceCopy;
+                using (SolidBrush clearBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0)))
                 {
-                    g.FillRectangle(Brushes.White, scaledRect);
+                    if (currentMode == SelectionMode.Rectangle)
+                    {
+                        g.FillRectangle(clearBrush, selectionRectangle);
+                    }
+                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+                    {
+                        GraphicsPath path = new GraphicsPath();
+                        path.AddPolygon(freeFormPoints.ToArray());
+                        g.FillPath(clearBrush, path);
+                    }
                 }
-            }
-            else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-            {
-                Point[] scaledPoints = freeFormPoints.Select(p => new Point(
-                    (int)(p.X * zoomFactor),
-                    (int)(p.Y * zoomFactor)
-                )).ToArray();
-
-                using (Graphics g = Graphics.FromImage(bm))
-                {
-                    GraphicsPath path = new GraphicsPath();
-                    path.AddPolygon(scaledPoints);
-                    g.FillPath(Brushes.White, path);
-                }
+                g.CompositingMode = CompositingMode.SourceOver;
             }
         }
         private void canvas_MouseDown(object sender, MouseEventArgs e)
@@ -245,6 +359,7 @@ namespace Demo_Paint
             }
             if (index == 1 || index == 2)
             {
+                SaveDrawingState();
                 px = e.Location;
             }
             if (selectionToolActive)
@@ -313,46 +428,48 @@ namespace Demo_Paint
         {
             // Update mouse coordinates in the status bar
             toolStripStatusLabel2.Text = $"{e.X}, {e.Y}px";
-
             // Handle drawing tools (pen or eraser)
             if (paint && (index == 1 || index == 2))
             {
-                // Skip selection logic if drawing
-                if (index == 1) // Pen tool
+                // Get graphics context for current layer instead of using global 'g'
+                using (Graphics currentG = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
-                    Pen p = new Pen(pic_ColorStroke.BackColor, brushsize)
+                    // Skip selection logic if drawing
+                    if (index == 1) // Pen tool
                     {
-                        StartCap = LineCap.Round,
-                        EndCap = LineCap.Round,
-                        LineJoin = LineJoin.Round
-                    };
-                    //px = e.Location;
-                    //g.DrawLine(p, px, py);
-                    //py = px;
-                    Point imagePoint1 = GetImagePoint(px);
-                    Point imagePoint2 = GetImagePoint(e.Location);
-                    g.DrawLine(p, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
+                        Pen p = new Pen(pic_ColorStroke.BackColor, brushsize)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round,
+                            LineJoin = LineJoin.Round
+                        };
 
-                    // Store current position for next line segment
-                    px = e.Location;
-                    py = e.Location;
-                }
-                else if (index == 2) // Eraser tool
-                {
-                    Pen eraser = new Pen(Color.White, brushsize)
+                        Point imagePoint1 = GetImagePoint(px);
+                        Point imagePoint2 = GetImagePoint(e.Location);
+                        currentG.DrawLine(p, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
+
+                        // Store current position for next line segment
+                        px = e.Location;
+                        py = e.Location;
+                    }
+                    else if (index == 2) // Eraser tool
                     {
-                        StartCap = LineCap.Round,
-                        EndCap = LineCap.Round,
-                        LineJoin = LineJoin.Round
-                    };
+                        currentG.CompositingMode = CompositingMode.SourceCopy;  // Add this line
+                        Pen eraser = new Pen(Color.FromArgb(0, 0, 0, 0), brushsize)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round,
+                            LineJoin = LineJoin.Round
+                        };
 
-                    Point imagePoint1 = GetImagePoint(px);
-                    Point imagePoint2 = GetImagePoint(e.Location);
-                    g.DrawLine(eraser, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
-
-                    // Store current position for next line segment
-                    px = e.Location;
-                    py = e.Location;
+                        Point imagePoint1 = GetImagePoint(px);
+                        Point imagePoint2 = GetImagePoint(e.Location);
+                        currentG.DrawLine(eraser, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
+                        currentG.CompositingMode = CompositingMode.SourceOver;
+                        // Store current position for next line segment
+                        px = e.Location;
+                        py = e.Location;
+                    }
                 }
 
                 canvas.Invalidate(); // Redraw the canvas
@@ -403,54 +520,72 @@ namespace Demo_Paint
                 }
             }
         }
+        private void TestBitmapTransparency(Bitmap bmp)
+        {
+            // Check a few pixels
+            Color pixel = bmp.GetPixel(0, 0);
+            MessageBox.Show($"Alpha: {pixel.A}, R: {pixel.R}, G: {pixel.G}, B: {pixel.B}");
+        }
         private void CopySelectedRegion()
         {
             if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
             {
-                Rectangle scaledRect = new Rectangle(
-                    (int)(selectionRectangle.X * zoomFactor),
-                    (int)(selectionRectangle.Y * zoomFactor),
-                    (int)(selectionRectangle.Width * zoomFactor),
-                    (int)(selectionRectangle.Height * zoomFactor)
-                );
-
-                copiedRegionBitmap = new Bitmap(scaledRect.Width, scaledRect.Height);
+                copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
                 using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                 {
-                    g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                        scaledRect, GraphicsUnit.Pixel);
+                    g.Clear(Color.FromArgb(0, 0, 0, 0));  // Fully transparent
+                    g.CompositingMode = CompositingMode.SourceCopy;
+
+                    // Copy the exact pixels
+                    Rectangle destRect = new Rectangle(0, 0, selectionRectangle.Width, selectionRectangle.Height);
+                    Rectangle sourceRect = new Rectangle(selectionRectangle.X, selectionRectangle.Y, selectionRectangle.Width, selectionRectangle.Height);
+
+                    using (ImageAttributes ia = new ImageAttributes())
+                    {
+                        ColorMatrix matrix = new ColorMatrix();
+                        matrix.Matrix33 = 1.0f; // preserve alpha
+                        ia.SetColorMatrix(matrix, ColorMatrixFlag.Default);
+
+                        g.DrawImage(CurrentLayer.Bitmap, destRect, sourceRect.X, sourceRect.Y,
+                            sourceRect.Width, sourceRect.Height, GraphicsUnit.Pixel, ia);
+                    }
                 }
             }
             else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
             {
-                // Scale freeform points
-                Point[] scaledPoints = freeFormPoints.Select(p => new Point(
-                    (int)(p.X * zoomFactor),
-                    (int)(p.Y * zoomFactor)
-                )).ToArray();
-
-                int minX = scaledPoints.Min(p => p.X);
-                int minY = scaledPoints.Min(p => p.Y);
-                int maxX = scaledPoints.Max(p => p.X);
-                int maxY = scaledPoints.Max(p => p.Y);
-
-                Rectangle scaledRect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-                copiedRegionBitmap = new Bitmap(scaledRect.Width, scaledRect.Height);
-
+                // Similar changes for freeform selection
+                copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
                 using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                 {
-                    GraphicsPath path = new GraphicsPath();
-                    Point[] translatedPoints = scaledPoints
-                        .Select(p => new Point(p.X - scaledRect.X, p.Y - scaledRect.Y))
-                        .ToArray();
-                    path.AddPolygon(translatedPoints);
-                    g.SetClip(path);
-                    g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                        scaledRect, GraphicsUnit.Pixel);
+                    g.Clear(Color.FromArgb(0, 0, 0, 0));  // Fully transparent
+                    g.CompositingMode = CompositingMode.SourceCopy;
+
+                    using (GraphicsPath path = new GraphicsPath())
+                    {
+                        Point[] translatedPoints = freeFormPoints
+                            .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
+                            .ToArray();
+                        path.AddPolygon(translatedPoints);
+                        g.SetClip(path);
+
+                        using (ImageAttributes ia = new ImageAttributes())
+                        {
+                            ColorMatrix matrix = new ColorMatrix();
+                            matrix.Matrix33 = 1.0f; // preserve alpha
+                            ia.SetColorMatrix(matrix, ColorMatrixFlag.Default);
+
+                            Rectangle destRect = new Rectangle(0, 0, selectionRectangle.Width, selectionRectangle.Height);
+                            Rectangle sourceRect = new Rectangle(selectionRectangle.X, selectionRectangle.Y,
+                                selectionRectangle.Width, selectionRectangle.Height);
+
+                            g.DrawImage(CurrentLayer.Bitmap, destRect, sourceRect.X, sourceRect.Y,
+                                sourceRect.Width, sourceRect.Height, GraphicsUnit.Pixel, ia);
+                        }
+                    }
                 }
             }
+            TestBitmapTransparency(copiedRegionBitmap);
         }
-
         private void PasteCopiedRegion(Point pastePoint)
         {
             if (copiedRegionBitmap != null)
@@ -460,16 +595,26 @@ namespace Demo_Paint
                     (int)(pastePoint.Y * zoomFactor)
                 );
 
-                using (Graphics g = Graphics.FromImage(bm))
+                using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
-                    g.DrawImage(copiedRegionBitmap, scaledPastePoint);
-                }
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    using (ImageAttributes ia = new ImageAttributes())
+                    {
+                        ColorMatrix matrix = new ColorMatrix();
+                        matrix.Matrix33 = 1.0f; // preserve alpha
+                        ia.SetColorMatrix(matrix, ColorMatrixFlag.Default);
 
+                        g.DrawImage(copiedRegionBitmap,
+                            new Rectangle(scaledPastePoint.X, scaledPastePoint.Y,
+                                copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height,
+                            GraphicsUnit.Pixel,
+                            ia);
+                    }
+                }
                 canvas.Invalidate();
             }
         }
-
-
         private bool isShapeClosed = false;
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
@@ -519,7 +664,7 @@ namespace Demo_Paint
             {
                 SaveState();
 
-                using (Graphics graphics = Graphics.FromImage(bm))
+                using (Graphics graphics = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
                     foreach (var textObj in textObjects)
                     {
@@ -671,7 +816,7 @@ namespace Demo_Paint
             if (index == 3)
             {
                 Point imagePoint = GetImagePoint(e.Location); // Convert screen coordinates to image coordinates
-                Fill(bm, imagePoint.X, imagePoint.Y, pic_ColorFill.BackColor);
+                Fill(CurrentLayer.Bitmap, imagePoint.X, imagePoint.Y, pic_ColorFill.BackColor);
                 canvas.Invalidate();
             }
             else if (index == 4)
@@ -924,14 +1069,32 @@ namespace Demo_Paint
         }
         private void CenterCanvas()
         {
-            if (panelCanvas == null || canvas == null) return;
+            if (panelCanvas != null && canvas != null)
+            {
+                // Calculate the center position
+                int x = (panelCanvas.ClientSize.Width - canvas.Width) / 2;
+                int y = (panelCanvas.ClientSize.Height - canvas.Height) / 2;
 
-            // Calculate center position
-            int x = Math.Max(0, (panelCanvas.ClientSize.Width - canvas.Width) / 2);
-            int y = Math.Max(0, (panelCanvas.ClientSize.Height - canvas.Height) / 2);
+                // Ensure we don't position the canvas outside the visible area
+                x = Math.Max(0, x);
+                y = Math.Max(0, y);
 
-            // Set canvas location
-            canvas.Location = new Point(x, y);
+                // Set the new location
+                canvas.Location = new Point(x, y);
+
+                // Update scroll position
+                if (panelCanvas.HorizontalScroll.Visible)
+                    panelCanvas.HorizontalScroll.Value = 0;
+                if (panelCanvas.VerticalScroll.Visible)
+                    panelCanvas.VerticalScroll.Value = 0;
+            }
+        }
+        private Point GetActualPoint(Point mousePoint)
+        {
+            // Convert mouse coordinates to actual image coordinates
+            int x = (int)((mousePoint.X - canvas.Location.X + panelCanvas.HorizontalScroll.Value) / zoomFactor);
+            int y = (int)((mousePoint.Y - canvas.Location.Y + panelCanvas.VerticalScroll.Value) / zoomFactor);
+            return new Point(x, y);
         }
         private void Form1_Resize(object sender, EventArgs e)
         {
@@ -980,61 +1143,257 @@ namespace Demo_Paint
 
         private void SaveState()
         {
+
             if (index == 1 || index == 2 || index == 3 || index == 6) // Pen, Eraser, Fill, Text tools
             {
-                if (bm != null && index != 5)
+                if (layers != null && index != 5)
                 {
-                    Bitmap savedState = new Bitmap(bm.Width, bm.Height);
-                    using (Graphics gr = Graphics.FromImage(savedState))
+                    // Create deep copies of all layers
+                    List<Layer> layersCopy = new List<Layer>();
+                    foreach (var layer in layers)
                     {
-                        // Draw the base bitmap
-                        gr.DrawImage(bm, 0, 0);
-
-                        // Draw all text objects onto the saved state
-                        foreach (var textObj in textObjects)
+                        Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                        using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
                         {
-                            using (Brush brush = new SolidBrush(textObj.Color))
-                            {
-                                DrawTextInRectangle(gr, textObj.Text, textObj.Rect, textObj.Font, brush);
-                            }
+                            gr.DrawImage(layer.Bitmap, 0, 0);
                         }
+                        layerCopy.Visible = layer.Visible;
+                        layersCopy.Add(layerCopy);
                     }
-                    undoStack.Push(new SavedState { Bitmap = savedState, TextObjects = new List<TextObject>(textObjects) });
+
+                    // Save state with layers and text objects
+                    undoStack.Push(new SavedState
+                    {
+                        Layers = layersCopy,
+                        TextObjects = new List<TextObject>(textObjects)
+                    });
                     redoStack.Clear();
                 }
             }
         }
-        private class SavedState
+        private class SelectionState
         {
-            public Bitmap Bitmap { get; set; }
-            public List<TextObject> TextObjects { get; set; }
+            public Bitmap SelectionBitmap { get; set; }
+            public Rectangle SelectionRectangle { get; set; }
+            public List<Point> FreeFormPoints { get; set; }
+            public bool IsSelectionActive { get; set; }
+            public bool IsMoving { get; set; }
+            public Point PastePosition { get; set; }
+            public SelectionMode CurrentMode { get; set; }
+            public Bitmap LayerBeforeChange { get; set; }  // Store layer state before selection operation
         }
 
+        // Update SavedState to only contain drawing-related info
+        private class SavedState
+        {
+            public List<Layer> Layers { get; set; }
+            public List<TextObject> TextObjects { get; set; }
+        }
+        private Stack<SelectionState> selectionUndoStack = new Stack<SelectionState>();
+        private Stack<SelectionState> selectionRedoStack = new Stack<SelectionState>();
+        private void SaveDrawingState()
+        {
+            if (layers != null)
+            {
+                // Create deep copies of all layers
+                List<Layer> layersCopy = new List<Layer>();
+                foreach (var layer in layers)
+                {
+                    Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                    using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
+                    {
+                        gr.DrawImage(layer.Bitmap, 0, 0);
+                    }
+                    layerCopy.Visible = layer.Visible;
+                    layersCopy.Add(layerCopy);
+                }
+
+                undoStack.Push(new SavedState
+                {
+                    Layers = layersCopy,
+                    TextObjects = new List<TextObject>(textObjects)
+                });
+                redoStack.Clear();
+            }
+        }
+
+        private void SaveSelectionState()
+        {
+            // Create a copy of the current layer before modification
+            Bitmap layerCopy = new Bitmap(CurrentLayer.Bitmap.Width, CurrentLayer.Bitmap.Height);
+            using (Graphics g = Graphics.FromImage(layerCopy))
+            {
+                g.DrawImage(CurrentLayer.Bitmap, 0, 0);
+            }
+
+            // Save selection state
+            Bitmap selectionCopy = null;
+            if (copiedRegionBitmap != null)
+            {
+                selectionCopy = new Bitmap(copiedRegionBitmap);
+            }
+
+            selectionUndoStack.Push(new SelectionState
+            {
+                SelectionBitmap = selectionCopy,
+                SelectionRectangle = selectionRectangle,
+                FreeFormPoints = new List<Point>(freeFormPoints),
+                IsSelectionActive = selectionToolActive,
+                IsMoving = isMoving,
+                PastePosition = pastePosition,
+                CurrentMode = currentMode,
+                LayerBeforeChange = layerCopy
+            });
+            selectionRedoStack.Clear();
+        }
+        private void SaveCurrentSelectionToRedo()
+        {
+            // Create a copy of the current layer
+            Bitmap layerCopy = new Bitmap(CurrentLayer.Bitmap.Width, CurrentLayer.Bitmap.Height);
+            using (Graphics g = Graphics.FromImage(layerCopy))
+            {
+                g.DrawImage(CurrentLayer.Bitmap, 0, 0);
+            }
+
+            // Save current selection bitmap if it exists
+            Bitmap selectionCopy = null;
+            if (copiedRegionBitmap != null)
+            {
+                selectionCopy = new Bitmap(copiedRegionBitmap);
+            }
+
+            // Push current state to redo stack
+            selectionRedoStack.Push(new SelectionState
+            {
+                SelectionBitmap = selectionCopy,
+                SelectionRectangle = selectionRectangle,
+                FreeFormPoints = new List<Point>(freeFormPoints),
+                IsSelectionActive = selectionToolActive,
+                IsMoving = isMoving,
+                PastePosition = pastePosition,
+                CurrentMode = currentMode,
+                LayerBeforeChange = layerCopy
+            });
+        }
+
+        private void SaveCurrentSelectionToUndo()
+        {
+            // Create a copy of the current layer
+            Bitmap layerCopy = new Bitmap(CurrentLayer.Bitmap.Width, CurrentLayer.Bitmap.Height);
+            using (Graphics g = Graphics.FromImage(layerCopy))
+            {
+                g.DrawImage(CurrentLayer.Bitmap, 0, 0);
+            }
+
+            // Save current selection bitmap if it exists
+            Bitmap selectionCopy = null;
+            if (copiedRegionBitmap != null)
+            {
+                selectionCopy = new Bitmap(copiedRegionBitmap);
+            }
+
+            // Push current state to undo stack
+            selectionUndoStack.Push(new SelectionState
+            {
+                SelectionBitmap = selectionCopy,
+                SelectionRectangle = selectionRectangle,
+                FreeFormPoints = new List<Point>(freeFormPoints),
+                IsSelectionActive = selectionToolActive,
+                IsMoving = isMoving,
+                PastePosition = pastePosition,
+                CurrentMode = currentMode,
+                LayerBeforeChange = layerCopy
+            });
+        }
+
+        private void SaveCurrentDrawingToRedo()
+        {
+            List<Layer> currentLayers = new List<Layer>();
+            foreach (var layer in layers)
+            {
+                Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
+                {
+                    gr.DrawImage(layer.Bitmap, 0, 0);
+                }
+                layerCopy.Visible = layer.Visible;
+                currentLayers.Add(layerCopy);
+            }
+
+            redoStack.Push(new SavedState
+            {
+                Layers = currentLayers,
+                TextObjects = new List<TextObject>(textObjects)
+            });
+        }
+
+        private void SaveCurrentDrawingToUndo()
+        {
+            List<Layer> currentLayers = new List<Layer>();
+            foreach (var layer in layers)
+            {
+                Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
+                {
+                    gr.DrawImage(layer.Bitmap, 0, 0);
+                }
+                layerCopy.Visible = layer.Visible;
+                currentLayers.Add(layerCopy);
+            }
+
+            undoStack.Push(new SavedState
+            {
+                Layers = currentLayers,
+                TextObjects = new List<TextObject>(textObjects)
+            });
+        }
         private void Undo()
         {
-            if (undoStack.Count > 0)
+            if (undoStack.Count > 0 || selectionUndoStack.Count > 0)
             {
-                // Save current state to redo stack
-                SavedState redoState = new SavedState
+                // Handle selection undo if there's a selection operation to undo
+                if (selectionUndoStack.Count > 0)
                 {
-                    Bitmap = new Bitmap(bm),
-                    TextObjects = new List<TextObject>(textObjects)
-                };
-                redoStack.Push(redoState);
+                    // Save current state to redo before undoing
+                    SaveCurrentSelectionToRedo();
 
-                // Get the previous state
-                SavedState previousState = undoStack.Pop();
+                    // Get the previous state
+                    SelectionState previousState = selectionUndoStack.Pop();
 
-                // Update bitmap and text objects
-                if (bm != null) bm.Dispose();
-                if (g != null) g.Dispose();
+                    // Restore the layer state
+                    using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                    {
+                        g.Clear(Color.Transparent);
+                        g.DrawImage(previousState.LayerBeforeChange, 0, 0);
+                    }
 
-                bm = new Bitmap(previousState.Bitmap);
-                g = Graphics.FromImage(bm);
-                textObjects = new List<TextObject>(previousState.TextObjects);
+                    // Clear current selection state
+                    copiedRegionBitmap = null;
+                    selectionRectangle = Rectangle.Empty;
+                    freeFormPoints.Clear();
+                    selectionToolActive = false;
+                    isMoving = false;
+                    currentMode = SelectionMode.Rectangle; // or your default mode
+                }
+                // Handle drawing undo if there's a drawing operation to undo
+                else if (undoStack.Count > 0)
+                {
+                    SaveCurrentDrawingToRedo();
+                    SavedState previousState = undoStack.Pop();
 
-                canvas.Image = bm;
+                    // Restore layers
+                    layers.Clear();
+                    foreach (var layer in previousState.Layers)
+                    {
+                        layers.Add(layer);
+                    }
+
+                    // Restore text objects
+                    textObjects = previousState.TextObjects;
+                }
+
                 canvas.Invalidate();
+                UpdateLayerListUI();
             }
         }
 
@@ -1044,29 +1403,51 @@ namespace Demo_Paint
         }
         private void Redo()
         {
-            if (redoStack.Count > 0)
+            if (redoStack.Count > 0 || selectionRedoStack.Count > 0)
             {
-                // Save current state to undo stack
-                SavedState undoState = new SavedState
+                // Handle selection redo if there's a selection operation to redo
+                if (selectionRedoStack.Count > 0)
                 {
-                    Bitmap = new Bitmap(bm),
-                    TextObjects = new List<TextObject>(textObjects)
-                };
-                undoStack.Push(undoState);
+                    // Save current state to undo before redoing
+                    SaveCurrentSelectionToUndo();
 
-                // Get the next state
-                SavedState nextState = redoStack.Pop();
+                    // Get the next state
+                    SelectionState nextState = selectionRedoStack.Pop();
 
-                // Update bitmap and text objects
-                if (bm != null) bm.Dispose();
-                if (g != null) g.Dispose();
+                    // Restore the layer state
+                    using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                    {
+                        g.Clear(Color.Transparent);
+                        g.DrawImage(nextState.LayerBeforeChange, 0, 0);
+                    }
 
-                bm = new Bitmap(nextState.Bitmap);
-                g = Graphics.FromImage(bm);
-                textObjects = new List<TextObject>(nextState.TextObjects);
+                    // Clear current selection state
+                    copiedRegionBitmap = null;
+                    selectionRectangle = Rectangle.Empty;
+                    freeFormPoints.Clear();
+                    selectionToolActive = false;
+                    isMoving = false;
+                    currentMode = SelectionMode.Rectangle; // or your default mode
+                }
+                // Handle drawing redo if there's a drawing operation to redo
+                else if (redoStack.Count > 0)
+                {
+                    SaveCurrentDrawingToUndo();
+                    SavedState nextState = redoStack.Pop();
 
-                canvas.Image = bm;
+                    // Restore layers
+                    layers.Clear();
+                    foreach (var layer in nextState.Layers)
+                    {
+                        layers.Add(layer);
+                    }
+
+                    // Restore text objects
+                    textObjects = nextState.TextObjects;
+                }
+
                 canvas.Invalidate();
+                UpdateLayerListUI();
             }
         }
         private void btnRedo_Click(object sender, EventArgs e)
@@ -1104,20 +1485,18 @@ namespace Demo_Paint
             }
             else if(e.KeyCode==Keys.Delete && selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                SaveState();
-                using (Graphics g=Graphics.FromImage(bm))
+                SaveSelectionState();
+                if (currentMode == SelectionMode.Rectangle)
                 {
-                    if (currentMode == SelectionMode.Rectangle)
-                    {
-                        g.FillRectangle(Brushes.White, selectionRectangle);
-                    }
-                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        GraphicsPath path = new GraphicsPath();
-                        path.AddPolygon(freeFormPoints.ToArray());
-                        g.FillPath(Brushes.White, path);
-                    }
+                    CurrentLayer.DeleteRegion(selectionRectangle);
                 }
+                else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+                {
+                    GraphicsPath path = new GraphicsPath();
+                    path.AddPolygon(freeFormPoints.ToArray());
+                    CurrentLayer.DeleteRegion(path);
+                }
+
                 selectionRectangle = Rectangle.Empty;
                 freeFormPoints.Clear();
                 copiedRegionBitmap = null;
@@ -1138,22 +1517,53 @@ namespace Demo_Paint
             {
                 inputText = inputText.Substring(0, inputText.Length - 1);
             }
-            else if (e.KeyCode == Keys.Enter)
+            else if (e.KeyCode == Keys.Delete && selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                // Lưu vùng chữ nhật và văn bản vào danh sách
-                if (!string.IsNullOrEmpty(inputText))
+                SaveState();
+                using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
-                    SaveState();
-                    using (Graphics graphics = Graphics.FromImage(bm))
+                    // Set compositing mode to copy source
+                    g.CompositingMode = CompositingMode.SourceCopy;
+
+                    if (currentMode == SelectionMode.Rectangle)
                     {
-                        DrawTextInRectangle(graphics, inputText, textBoxRect, textFont, textBrush);
+                        // Create a bitmap with the same size as the selection
+                        using (Bitmap tempBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height))
+                        {
+                            // Draw the transparent area
+                            using (Graphics tempG = Graphics.FromImage(tempBitmap))
+                            {
+                                tempG.Clear(Color.Transparent);
+                            }
+                            // Copy the transparent area to the layer
+                            g.DrawImage(tempBitmap, selectionRectangle);
+                        }
+                    }
+                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+                    {
+                        GraphicsPath path = new GraphicsPath();
+                        path.AddPolygon(freeFormPoints.ToArray());
+
+                        // Create a region from the path
+                        using (Region region = new Region(path))
+                        {
+                            // Clear the region with transparency
+                            g.SetClip(region, CombineMode.Replace);
+                            g.Clear(Color.Transparent);
+                        }
                     }
 
-                    // Reset trạng thái nhập
-                    isTyping = false;
-                    inputText = "";
-                    canvas.Invalidate(); // Vẽ lại canvas với nội dung đã được lưu vào Bitmap
+                    // Reset compositing mode
+                    g.CompositingMode = CompositingMode.SourceOver;
                 }
+
+                selectionRectangle = Rectangle.Empty;
+                freeFormPoints.Clear();
+                copiedRegionBitmap = null;
+                isMoving = false;
+
+                canvas.Invalidate();
+                e.Handled = true;
             }
             else if (e.KeyCode == Keys.Escape)
             {
@@ -1235,6 +1645,7 @@ namespace Demo_Paint
 
         private void btnText_Click(object sender, EventArgs e)
         {
+            SaveDrawingState();
             if (currentIndex != 6 && currentIndex != -1) // If switching to text from another tool
             {
                 // Don't commit texts when switching to text tool
@@ -1285,74 +1696,127 @@ namespace Demo_Paint
         // Phương thức vẽ hình chữ nhật nét đứt và văn bản
         private void DrawTextInRectangle(Graphics g, string text, Rectangle rect, Font font, Brush brush)
         {
-            // Đo chiều rộng của từng dòng và xuống dòng khi cần
-            List<string> lines = new List<string>();
-            string currentLine = "";
-            int maxWidth = rect.Width - 2 * padding;
-
-            foreach (char c in text)
+            using (Graphics currentG = Graphics.FromImage(CurrentLayer.Bitmap))
             {
-                string tempLine = currentLine + c;
+                // Đo chiều rộng của từng dòng và xuống dòng khi cần
+                List<string> lines = new List<string>();
+                string currentLine = "";
+                int maxWidth = rect.Width - 2 * padding;
 
-                // Đo chiều rộng của dòng tạm
-                SizeF textSize = g.MeasureString(tempLine, font);
-
-                if (textSize.Width > maxWidth || c == '\n') // Thêm dòng mới khi gặp ký tự xuống dòng
+                foreach (char c in text)
                 {
-                    // Nếu vượt quá chiều rộng hoặc gặp ký tự xuống dòng
+                    string tempLine = currentLine + c;
+
+                    // Đo chiều rộng của dòng tạm
+                    SizeF textSize = g.MeasureString(tempLine, font);
+
+                    if (textSize.Width > maxWidth || c == '\n') // Thêm dòng mới khi gặp ký tự xuống dòng
+                    {
+                        // Nếu vượt quá chiều rộng hoặc gặp ký tự xuống dòng
+                        lines.Add(currentLine.TrimEnd());
+                        currentLine = c == '\n' ? "" : c.ToString(); // Bắt đầu dòng mới
+                    }
+                    else
+                    {
+                        currentLine = tempLine;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(currentLine))
+                {
                     lines.Add(currentLine.TrimEnd());
-                    currentLine = c == '\n' ? "" : c.ToString(); // Bắt đầu dòng mới
                 }
-                else
+                StringFormat stringFormat = new StringFormat();
+                switch (currentAlignment)
                 {
-                    currentLine = tempLine;
+                    case "Left":
+                        stringFormat.Alignment = StringAlignment.Near; // Căn trái
+                        break;
+                    case "Center":
+                        stringFormat.Alignment = StringAlignment.Center; // Căn giữa
+                        break;
+                    case "Right":
+                        stringFormat.Alignment = StringAlignment.Far; // Căn phải
+                        break;
+                    default:
+                        stringFormat.Alignment = StringAlignment.Near; // Mặc định căn trái
+                        break;
+                }
+
+                // Cấu hình StringFormat
+                float y = rect.Y + padding; // Vị trí Y ban đầu
+                foreach (string line in lines)
+                {
+                    if (y + font.Height > rect.Bottom) break; // Nếu vượt quá chiều cao, dừng vẽ
+
+                    // Xác định hình chữ nhật cho từng dòng
+                    RectangleF lineRect = new RectangleF(rect.X + padding, y, rect.Width - 2 * padding, font.Height);
+
+                    // Vẽ dòng hiện tại với căn chỉnh
+                    g.DrawString(line, font, brush, lineRect, stringFormat);
+
+                    // Chuyển xuống dòng tiếp theo
+                    y += font.Height;
                 }
             }
-
-            if (!string.IsNullOrEmpty(currentLine))
+            
+        }
+        private void DrawTransparencyCheckerboard(Graphics g, Rectangle rect)
+        {
+            int squareSize = 8; // Size of each checkerboard square
+            using (Brush lightBrush = new SolidBrush(Color.FromArgb(255, 255, 255)))
+            using (Brush darkBrush = new SolidBrush(Color.FromArgb(204, 204, 204)))
             {
-                lines.Add(currentLine.TrimEnd());
-            }
-            StringFormat stringFormat = new StringFormat();
-            switch (currentAlignment)
-            {
-                case "Left":
-                    stringFormat.Alignment = StringAlignment.Near; // Căn trái
-                    break;
-                case "Center":
-                    stringFormat.Alignment = StringAlignment.Center; // Căn giữa
-                    break;
-                case "Right":
-                    stringFormat.Alignment = StringAlignment.Far; // Căn phải
-                    break;
-                default:
-                    stringFormat.Alignment = StringAlignment.Near; // Mặc định căn trái
-                    break;
-            }
-
-            // Cấu hình StringFormat
-            float y = rect.Y + padding; // Vị trí Y ban đầu
-            foreach (string line in lines)
-            {
-                if (y + font.Height > rect.Bottom) break; // Nếu vượt quá chiều cao, dừng vẽ
-
-                // Xác định hình chữ nhật cho từng dòng
-                RectangleF lineRect = new RectangleF(rect.X + padding, y, rect.Width - 2 * padding, font.Height);
-
-                // Vẽ dòng hiện tại với căn chỉnh
-                g.DrawString(line, font, brush, lineRect, stringFormat);
-
-                // Chuyển xuống dòng tiếp theo
-                y += font.Height;
+                for (int y = rect.Top; y < rect.Bottom; y += squareSize)
+                {
+                    for (int x = rect.Left; x < rect.Right; x += squareSize)
+                    {
+                        Brush brush = ((x + y) / squareSize) % 2 == 0 ? lightBrush : darkBrush;
+                        g.FillRectangle(brush, x, y, squareSize, squareSize);
+                    }
+                }
             }
         }
-
-
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-            e.Graphics.DrawImage(bm, 0, 0, canvas.Width, canvas.Height);
+            DrawTransparencyCheckerboard(e.Graphics, canvas.ClientRectangle);
+
+            if (layers != null)
+            {
+                // Create a temporary bitmap for compositing
+                using (Bitmap compositeBitmap = new Bitmap(canvas.Width, canvas.Height))
+                using (Graphics compositeG = Graphics.FromImage(compositeBitmap))
+                {
+                    compositeG.Clear(Color.Transparent);
+
+                    // Draw each visible layer
+                    foreach (var layer in layers)
+                    {
+                        if (layer.Visible)
+                        {
+                            // Create color matrix to handle opacity
+                            ColorMatrix matrix = new ColorMatrix();
+                            matrix.Matrix33 = layer.Opacity; // Set opacity
+
+                            ImageAttributes attributes = new ImageAttributes();
+                            attributes.SetColorMatrix(matrix);
+
+                            Rectangle rect = new Rectangle(0, 0, canvas.Width, canvas.Height);
+                            compositeG.DrawImage(layer.Bitmap, rect, 0, 0,
+                                layer.Bitmap.Width, layer.Bitmap.Height,
+                                GraphicsUnit.Pixel, attributes);
+                        }
+                    }
+
+                    // Draw the final composite
+                    e.Graphics.DrawImage(compositeBitmap, 0, 0);
+                }
+            }
+
+            // Remove this line since we're now using layers instead of bm
+            // e.Graphics.DrawImage(bm, 0, 0, canvas.Width, canvas.Height);
 
             // Draw textboxes
             foreach (var textObj in textObjects)
@@ -1383,7 +1847,7 @@ namespace Demo_Paint
                 }
             }
 
-            // Draw rectangle selection only when selecting
+            // Draw selection UI elements
             if (isSelecting || selectionToolActive || isMoving)
             {
                 // Draw the moving content first
@@ -1400,7 +1864,6 @@ namespace Demo_Paint
                     {
                         using (GraphicsPath path = new GraphicsPath())
                         {
-                            // Scale freeform points
                             Point[] scaledPoints = freeFormPoints.Select(p => new Point(
                                 (int)(p.X * zoomFactor),
                                 (int)(p.Y * zoomFactor)
@@ -1419,7 +1882,7 @@ namespace Demo_Paint
                     }
                 }
 
-                // Draw selection outline with scaled coordinates
+                // Draw selection outline
                 using (Pen selectionPen = new Pen(Color.Black, 2) { DashStyle = DashStyle.Dash })
                 {
                     if (currentMode == SelectionMode.Rectangle && !selectionRectangle.IsEmpty)
@@ -1464,7 +1927,7 @@ namespace Demo_Paint
                         copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
                         using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                         {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
                                 selectionRectangle, GraphicsUnit.Pixel);
                         }
                     }
@@ -1484,7 +1947,7 @@ namespace Demo_Paint
                             g.SetClip(path);
 
                             // Copy only the area inside the path
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
                                 selectionRectangle, GraphicsUnit.Pixel);
                         }
                     }
@@ -1500,18 +1963,27 @@ namespace Demo_Paint
 
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            SaveSelectionState();
             if (Clipboard.ContainsImage())
             {
                 // Clear any existing selection
                 selectionRectangle = Rectangle.Empty;
                 freeFormPoints.Clear();
 
-                // Get image from clipboard - specify System.Drawing.Image
-                System.Drawing.Image clipboardImage = Clipboard.GetImage();
-                copiedRegionBitmap = new Bitmap(clipboardImage);
+                // Get image from clipboard and create new bitmap with transparency support
+                using (Bitmap originalBitmap = new Bitmap(Clipboard.GetImage()))
+                {
+                    copiedRegionBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                    {
+                        g.Clear(Color.Transparent);
+                        g.CompositingMode = CompositingMode.SourceOver;
+                        g.DrawImage(originalBitmap, 0, 0);
+                    }
+                }
 
                 // Create new selection rectangle at cursor position
-                Point pasteLocation = new Point(10, 10); // You can adjust this offset as needed
+                Point pasteLocation = new Point(10, 10);
                 selectionRectangle = new Rectangle(
                     pasteLocation.X,
                     pasteLocation.Y,
@@ -1527,11 +1999,11 @@ namespace Demo_Paint
                 selectionToolActive = true;
                 canvas.Invalidate();
             }
-
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            SaveSelectionState();
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
                 // Copy the region if it hasn't been copied yet
@@ -1542,7 +2014,7 @@ namespace Demo_Paint
                         copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
                         using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                         {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
                                 selectionRectangle, GraphicsUnit.Pixel);
                         }
                     }
@@ -1557,7 +2029,7 @@ namespace Demo_Paint
                                 .ToArray();
                             path.AddPolygon(translatedPoints);
                             g.SetClip(path);
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
                                 selectionRectangle, GraphicsUnit.Pixel);
                         }
                     }
@@ -1569,19 +2041,29 @@ namespace Demo_Paint
                     Clipboard.SetImage(copiedRegionBitmap);
                 }
 
-                // Clear the selected area
-                using (Graphics g = Graphics.FromImage(bm))
+                // Clear the selected area with true transparency
+                using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
+                    g.CompositingMode = CompositingMode.SourceCopy;  // Important!
+
                     if (currentMode == SelectionMode.Rectangle)
                     {
-                        g.FillRectangle(Brushes.White, selectionRectangle);
+                        using (SolidBrush clearBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0)))
+                        {
+                            g.FillRectangle(clearBrush, selectionRectangle);
+                        }
                     }
                     else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
                     {
                         GraphicsPath path = new GraphicsPath();
                         path.AddPolygon(freeFormPoints.ToArray());
-                        g.FillPath(Brushes.White, path);
+                        using (SolidBrush clearBrush = new SolidBrush(Color.FromArgb(0, 0, 0, 0)))
+                        {
+                            g.FillPath(clearBrush, path);
+                        }
                     }
+
+                    g.CompositingMode = CompositingMode.SourceOver;  // Reset
                 }
 
                 // Clear selection
@@ -1589,30 +2071,24 @@ namespace Demo_Paint
                 freeFormPoints.Clear();
                 copiedRegionBitmap = null;
                 isMoving = false;
+                selectionToolActive = false;
 
                 canvas.Invalidate();
             }
         }
         private void FlipHorizontal()
         {
+            SaveSelectionState();
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                // Copy the region if it hasn't been copied yet
+                // Create initial copy if it doesn't exist
                 if (copiedRegionBitmap == null)
                 {
-                    if (currentMode == SelectionMode.Rectangle)
+                    copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                     {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
-                        {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
-                        }
-                    }
-                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        g.Clear(Color.Transparent);
+                        if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
                         {
                             GraphicsPath path = new GraphicsPath();
                             Point[] translatedPoints = freeFormPoints
@@ -1620,58 +2096,57 @@ namespace Demo_Paint
                                 .ToArray();
                             path.AddPolygon(translatedPoints);
                             g.SetClip(path);
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
                         }
+                        g.DrawImage(CurrentLayer.Bitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            selectionRectangle,
+                            GraphicsUnit.Pixel);
                     }
-                }
-
-                if (copiedRegionBitmap != null)
-                {
-                    // Create a new bitmap with the same dimensions
-                    Bitmap flippedBitmap = new Bitmap(copiedRegionBitmap.Width, copiedRegionBitmap.Height);
-
-                    // Flip the image horizontally
-                    using (Graphics g = Graphics.FromImage(flippedBitmap))
-                    {
-                        g.DrawImage(copiedRegionBitmap,
-                            new Point[] {
-                        new Point(copiedRegionBitmap.Width, 0),
-                        new Point(0, 0),
-                        new Point(copiedRegionBitmap.Width, copiedRegionBitmap.Height)
-                            });
-                    }
-
-                    // Update the copied region bitmap
-                    copiedRegionBitmap = flippedBitmap;
 
                     // Clear the original area
                     ClearOriginalArea();
-
-                    canvas.Invalidate();
                 }
+
+                // Create new bitmap for flipped image
+                Bitmap flippedBitmap = new Bitmap(copiedRegionBitmap.Width, copiedRegionBitmap.Height, PixelFormat.Format32bppArgb);
+                flippedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
+
+                using (Graphics g = Graphics.FromImage(flippedBitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+
+                    // Use matrix transformation for flipping
+                    g.TranslateTransform(flippedBitmap.Width, 0);
+                    g.ScaleTransform(-1, 1);
+                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                }
+
+                // Update the bitmap
+                copiedRegionBitmap.Dispose();
+                copiedRegionBitmap = flippedBitmap;
+
+                canvas.Invalidate();
             }
         }
+
         private void FlipVertical()
         {
+            SaveSelectionState();
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                // Copy the region if it hasn't been copied yet
+                // Create initial copy if it doesn't exist
                 if (copiedRegionBitmap == null)
                 {
-                    if (currentMode == SelectionMode.Rectangle)
+                    copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                     {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
-                        {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
-                        }
-                    }
-                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        g.Clear(Color.Transparent);
+                        if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
                         {
                             GraphicsPath path = new GraphicsPath();
                             Point[] translatedPoints = freeFormPoints
@@ -1679,195 +2154,199 @@ namespace Demo_Paint
                                 .ToArray();
                             path.AddPolygon(translatedPoints);
                             g.SetClip(path);
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
                         }
-                    }
-                }
-
-                if (copiedRegionBitmap != null)
-                {
-                    // Flip the bitmap vertically
-                    copiedRegionBitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
-                    // If using freeform selection, flip the points
-                    if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        for (int i = 0; i < freeFormPoints.Count; i++)
-                        {
-                            Point p = freeFormPoints[i];
-                            int newY = selectionRectangle.Bottom - (p.Y - selectionRectangle.Top);
-                            freeFormPoints[i] = new Point(p.X, newY);
-                        }
+                        g.DrawImage(CurrentLayer.Bitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            selectionRectangle,
+                            GraphicsUnit.Pixel);
                     }
 
                     // Clear the original area
                     ClearOriginalArea();
-
-                    canvas.Invalidate();
                 }
+
+                // Create new bitmap for flipped image
+                Bitmap flippedBitmap = new Bitmap(copiedRegionBitmap.Width, copiedRegionBitmap.Height, PixelFormat.Format32bppArgb);
+                flippedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
+
+                using (Graphics g = Graphics.FromImage(flippedBitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+
+                    // Use matrix transformation for flipping
+                    g.TranslateTransform(0, flippedBitmap.Height);
+                    g.ScaleTransform(1, -1);
+                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                }
+
+                // Update the bitmap
+                copiedRegionBitmap.Dispose();
+                copiedRegionBitmap = flippedBitmap;
+
+                canvas.Invalidate();
             }
         }
         private void RotateLeft90()
         {
+            SaveSelectionState();
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                // Copy the region if it hasn't been copied yet
+                // Create initial copy if it doesn't exist
                 if (copiedRegionBitmap == null)
                 {
-                    if (currentMode == SelectionMode.Rectangle)
+                    copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                     {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        g.Clear(Color.Transparent);  // Clear with transparency
+                        if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
                         {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
-                        }
-                    }
-                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
-                        {
+                            // Handle freeform selection
                             GraphicsPath path = new GraphicsPath();
                             Point[] translatedPoints = freeFormPoints
                                 .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
                                 .ToArray();
                             path.AddPolygon(translatedPoints);
                             g.SetClip(path);
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
                         }
-                    }
-                }
-
-                if (copiedRegionBitmap != null)
-                {
-                    // Create new bitmap with swapped dimensions
-                    Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width);
-                    using (Graphics g = Graphics.FromImage(rotatedBitmap))
-                    {
-                        // Rotate 90 degrees counterclockwise
-                        g.TranslateTransform(rotatedBitmap.Width / 2f, rotatedBitmap.Height / 2f);
-                        g.RotateTransform(-90);
-                        g.TranslateTransform(-copiedRegionBitmap.Width / 2f, -copiedRegionBitmap.Height / 2f);
-                        g.DrawImage(copiedRegionBitmap, 0, 0);
+                        g.DrawImage(CurrentLayer.Bitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            selectionRectangle,
+                            GraphicsUnit.Pixel);
                     }
 
-                    // Update selection rectangle with new dimensions
-                    Point center = new Point(selectionRectangle.X + selectionRectangle.Width / 2,
-                                           selectionRectangle.Y + selectionRectangle.Height / 2);
-                    selectionRectangle = new Rectangle(
-                        center.X - rotatedBitmap.Width / 2,
-                        center.Y - rotatedBitmap.Height / 2,
-                        rotatedBitmap.Width,
-                        rotatedBitmap.Height
-                    );
-
-                    // Rotate freeform points if needed
-                    if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        Point originalCenter = new Point(copiedRegionBitmap.Width / 2, copiedRegionBitmap.Height / 2);
-                        for (int i = 0; i < freeFormPoints.Count; i++)
-                        {
-                            // Translate point to origin
-                            int x = freeFormPoints[i].X - center.X;
-                            int y = freeFormPoints[i].Y - center.Y;
-
-                            // Rotate 90 degrees clockwise
-                            int newX = y;
-                            int newY = -x;
-
-                            // Translate back
-                            freeFormPoints[i] = new Point(center.X + newX, center.Y + newY);
-                        }
-                    }
-
-                    copiedRegionBitmap = rotatedBitmap;
+                    // Clear the original area
                     ClearOriginalArea();
-                    canvas.Invalidate();
                 }
+
+                // Create new bitmap with swapped dimensions
+                Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width, PixelFormat.Format32bppArgb);
+                rotatedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
+
+                using (Graphics g = Graphics.FromImage(rotatedBitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+
+                    // Calculate center points
+                    float centerX = rotatedBitmap.Width / 2f;
+                    float centerY = rotatedBitmap.Height / 2f;
+                    float oldCenterX = copiedRegionBitmap.Width / 2f;
+                    float oldCenterY = copiedRegionBitmap.Height / 2f;
+
+                    // Apply transformation
+                    g.TranslateTransform(centerX, centerY);
+                    g.RotateTransform(-90);
+                    g.TranslateTransform(-oldCenterX, -oldCenterY);
+
+                    // Draw the image
+                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                }
+
+                // Update the bitmap
+                copiedRegionBitmap.Dispose();
+                copiedRegionBitmap = rotatedBitmap;
+
+                // Update selection rectangle
+                Point center = new Point(
+                    selectionRectangle.X + selectionRectangle.Width / 2,
+                    selectionRectangle.Y + selectionRectangle.Height / 2
+                );
+                selectionRectangle = new Rectangle(
+                    center.X - rotatedBitmap.Width / 2,
+                    center.Y - rotatedBitmap.Height / 2,
+                    rotatedBitmap.Width,
+                    rotatedBitmap.Height
+                );
+
+                canvas.Invalidate();
             }
         }
         private void RotateRight90()
         {
+            SaveSelectionState();
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
-                // Copy the region if it hasn't been copied yet
+                // Create initial copy if it doesn't exist
                 if (copiedRegionBitmap == null)
                 {
-                    if (currentMode == SelectionMode.Rectangle)
+                    copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                     {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        g.Clear(Color.Transparent);  // Clear with transparency
+                        if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
                         {
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
-                        }
-                    }
-                    else if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
-                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
-                        {
+                            // Handle freeform selection
                             GraphicsPath path = new GraphicsPath();
                             Point[] translatedPoints = freeFormPoints
                                 .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
                                 .ToArray();
                             path.AddPolygon(translatedPoints);
                             g.SetClip(path);
-                            g.DrawImage(bm, new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                                selectionRectangle, GraphicsUnit.Pixel);
                         }
-                    }
-                }
-
-                if (copiedRegionBitmap != null)
-                {
-                    // Create new bitmap with swapped dimensions
-                    Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width);
-                    using (Graphics g = Graphics.FromImage(rotatedBitmap))
-                    {
-                        // Rotate 90 degrees clockwise
-                        g.TranslateTransform(rotatedBitmap.Width / 2f, rotatedBitmap.Height / 2f);
-                        g.RotateTransform(90);
-                        g.TranslateTransform(-copiedRegionBitmap.Width / 2f, -copiedRegionBitmap.Height / 2f);
-                        g.DrawImage(copiedRegionBitmap, 0, 0);
+                        g.DrawImage(CurrentLayer.Bitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            selectionRectangle,
+                            GraphicsUnit.Pixel);
                     }
 
-                    // Update selection rectangle with new dimensions
-                    Point center = new Point(selectionRectangle.X + selectionRectangle.Width / 2,
-                                           selectionRectangle.Y + selectionRectangle.Height / 2);
-                    selectionRectangle = new Rectangle(
-                        center.X - rotatedBitmap.Width / 2,
-                        center.Y - rotatedBitmap.Height / 2,
-                        rotatedBitmap.Width,
-                        rotatedBitmap.Height
-                    );
-
-                    // Rotate freeform points if needed
-                    if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
-                    {
-                        Point originalCenter = new Point(copiedRegionBitmap.Width / 2, copiedRegionBitmap.Height / 2);
-                        for (int i = 0; i < freeFormPoints.Count; i++)
-                        {
-                            // Translate point to origin
-                            int x = freeFormPoints[i].X - center.X;
-                            int y = freeFormPoints[i].Y - center.Y;
-
-                            // Rotate 90 degrees clockwise
-                            int newX = y;
-                            int newY = -x;
-
-                            // Translate back
-                            freeFormPoints[i] = new Point(center.X + newX, center.Y + newY);
-                        }
-                    }
-
-                    copiedRegionBitmap = rotatedBitmap;
+                    // Clear the original area
                     ClearOriginalArea();
-                    canvas.Invalidate();
                 }
+
+                // Create new bitmap with swapped dimensions
+                Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width, PixelFormat.Format32bppArgb);
+                rotatedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
+
+                using (Graphics g = Graphics.FromImage(rotatedBitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+
+                    // Calculate center points
+                    float centerX = rotatedBitmap.Width / 2f;
+                    float centerY = rotatedBitmap.Height / 2f;
+                    float oldCenterX = copiedRegionBitmap.Width / 2f;
+                    float oldCenterY = copiedRegionBitmap.Height / 2f;
+
+                    // Apply transformation
+                    g.TranslateTransform(centerX, centerY);
+                    g.RotateTransform(90);
+                    g.TranslateTransform(-oldCenterX, -oldCenterY);
+
+                    // Draw the image
+                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                }
+
+                // Update the bitmap
+                copiedRegionBitmap.Dispose();
+                copiedRegionBitmap = rotatedBitmap;
+
+                // Update selection rectangle
+                Point center = new Point(
+                    selectionRectangle.X + selectionRectangle.Width / 2,
+                    selectionRectangle.Y + selectionRectangle.Height / 2
+                );
+                selectionRectangle = new Rectangle(
+                    center.X - rotatedBitmap.Width / 2,
+                    center.Y - rotatedBitmap.Height / 2,
+                    rotatedBitmap.Width,
+                    rotatedBitmap.Height
+                );
+
+                canvas.Invalidate();
             }
         }
         private void Rotate180()
@@ -1880,6 +2359,8 @@ namespace Demo_Paint
         {
             if (selectionToolActive && !selectionRectangle.IsEmpty)
             {
+                SaveSelectionState();
+
                 // Initialize the cropped bitmap
                 Bitmap croppedBitmap = null;
 
@@ -1888,7 +2369,7 @@ namespace Demo_Paint
                     croppedBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height);
                     using (Graphics g = Graphics.FromImage(croppedBitmap))
                     {
-                        g.DrawImage(bm, new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
+                        g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
                             selectionRectangle, GraphicsUnit.Pixel);
                     }
                 }
@@ -1903,7 +2384,7 @@ namespace Demo_Paint
                             .ToArray();
                         path.AddPolygon(translatedPoints);
                         g.SetClip(path);
-                        g.DrawImage(bm, new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
+                        g.DrawImage(CurrentLayer.Bitmap, new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
                             selectionRectangle, GraphicsUnit.Pixel);
                     }
                 }
@@ -1911,19 +2392,39 @@ namespace Demo_Paint
                 // Check if we have a valid cropped bitmap
                 if (croppedBitmap != null)
                 {
-                    // Save the current state before cropping
-                    SaveState();
+                    // Update all layers to new size
+                    List<Layer> newLayers = new List<Layer>();
+                    foreach (var layer in layers)
+                    {
+                        Layer newLayer = new Layer(croppedBitmap.Width, croppedBitmap.Height, layer.Name);
+                        using (Graphics g = Graphics.FromImage(newLayer.Bitmap))
+                        {
+                            // Draw the old layer content with offset
+                            g.DrawImage(layer.Bitmap,
+                                new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
+                                selectionRectangle,
+                                GraphicsUnit.Pixel);
+                        }
+                        newLayer.Visible = layer.Visible;
+                        newLayers.Add(newLayer);
+                    }
 
-                    // Update the main bitmap and graphics object
-                    if (bm != null) bm.Dispose();
-                    if (g != null) g.Dispose();
+                    // Update layers
+                    layers = newLayers;
 
-                    bm = croppedBitmap;
-                    g = Graphics.FromImage(bm);
-
-                    // Update canvas size and properties
+                    // Update canvas size
                     canvas.Size = croppedBitmap.Size;
-                    canvas.Image = bm;
+
+                    // Adjust text objects positions
+                    foreach (var textObj in textObjects)
+                    {
+                        textObj.Rect = new Rectangle(
+                            textObj.Rect.X - selectionRectangle.X,
+                            textObj.Rect.Y - selectionRectangle.Y,
+                            textObj.Rect.Width,
+                            textObj.Rect.Height
+                        );
+                    }
 
                     // Clear selection
                     selectionRectangle = Rectangle.Empty;
@@ -1932,13 +2433,13 @@ namespace Demo_Paint
                     isMoving = false;
                     selectionToolActive = false;
 
-                    // Update the parent container if needed
-                    if (canvas.Parent != null)
-                    {
-                        canvas.Parent.Refresh();
-                    }
+                    // Reset zoom to fit
+                    zoomFactor = 1.0f;
+                    CenterCanvas();
 
+                    // Update UI
                     canvas.Invalidate();
+                    UpdateLayerListUI();
                 }
             }
         }
@@ -1957,8 +2458,8 @@ namespace Demo_Paint
             zoomFactor = 1.0f;  // Reset to default zoom (100%)
 
             // Reset canvas size to original bitmap dimensions
-            canvas.Width = bm.Width;
-            canvas.Height = bm.Height;
+            canvas.Width = CurrentLayer.Bitmap.Width;
+            canvas.Height = CurrentLayer.Bitmap.Height;
 
             // Reset scroll position first
             panelCanvas.AutoScrollPosition = Point.Empty;
@@ -1983,8 +2484,144 @@ namespace Demo_Paint
 
         }
 
+        private void btnAddLayer_Click(object sender, EventArgs e)
+        {
+            int maxLayerNumber = 0;
+            foreach (var layer in layers)
+            {
+                if (layer.Name.StartsWith("Layer "))
+                {
+                    string numberStr = layer.Name.Substring(6); // "Layer " is 6 characters
+                    if (int.TryParse(numberStr, out int number))
+                    {
+                        maxLayerNumber = Math.Max(maxLayerNumber, number);
+                    }
+                }
+            }
+
+            // Create new layer with next number
+            string name = $"Layer {maxLayerNumber + 1}";
+            Layer newLayer = new Layer(canvas.Width, canvas.Height, name);
+            layers.Add(newLayer);
+            currentLayerIndex = layers.Count - 1;
+            UpdateLayerListUI();
+            canvas.Invalidate();
+        }
+
+        private void UpdateLayerListUI()
+        {
+            layerPanel.Controls.Clear();
+
+            // Add layers from bottom (oldest) to top (newest)
+            for (int i = 0; i < layers.Count; i++)  // Changed iteration order
+            {
+                Layer layer = layers[i];
+                Panel layerItemPanel = new Panel
+                {
+                    Dock = DockStyle.Top,
+                    Height = 30
+                };
+
+                CheckBox visibilityCheckBox = new CheckBox
+                {
+                    Checked = layer.Visible,
+                    Location = new Point(10, 10),
+                    Text = layer.Name,
+                    Font = new Font("Arial", 12, FontStyle.Regular),
+                    AutoSize = true
+                };
+
+                int index = i;
+                visibilityCheckBox.CheckedChanged += (s, ev) =>
+                {
+                    layers[index].Visible = visibilityCheckBox.Checked;
+                    canvas.Invalidate();
+                };
+
+                layerItemPanel.Controls.Add(visibilityCheckBox);
+                layerItemPanel.ContextMenuStrip = layerContextMenuStrip;
+
+                if (i == currentLayerIndex)
+                {
+                    layerItemPanel.BackColor = Color.LightBlue;
+                }
+
+                layerItemPanel.Click += (s, ev) =>
+                {
+                    currentLayerIndex = index;
+                    UpdateLayerListUI();
+                    canvas.Invalidate();
+                };
+                visibilityCheckBox.Click += (s, ev) =>
+                {
+                    currentLayerIndex = index;
+                    UpdateLayerListUI();
+                    canvas.Invalidate();
+                };
+
+                layerPanel.Controls.Add(layerItemPanel);
+            }
+
+            // Add the button last (will appear at top)
+            btnAddLayer.Location = new Point(10, 5);
+            btnAddLayer.Dock = DockStyle.Top;
+            layerPanel.Controls.Add(btnAddLayer);
+        }
+
+        private void moveUpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentLayerIndex < layers.Count - 1)
+            {
+                SaveDrawingState(); // Save state before moving
+                Layer temp = layers[currentLayerIndex];
+                layers[currentLayerIndex] = layers[currentLayerIndex + 1];
+                layers[currentLayerIndex + 1] = temp;
+                currentLayerIndex++;
+                UpdateLayerListUI();
+                canvas.Invalidate();
+            }
+        }
+
+        private void moveDownToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentLayerIndex > 0)
+            {
+                SaveDrawingState(); // Save state before moving
+                Layer temp = layers[currentLayerIndex];
+                layers[currentLayerIndex] = layers[currentLayerIndex - 1];
+                layers[currentLayerIndex - 1] = temp;
+                currentLayerIndex--;
+                UpdateLayerListUI();
+                canvas.Invalidate();
+            }
+        }
+
+        private void deleteLayerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (layers.Count > 1) // Prevent deleting the last layer
+            {
+                SaveDrawingState(); // Save state before deleting
+                layers.RemoveAt(currentLayerIndex);
+
+                // Adjust current layer index
+                if (currentLayerIndex >= layers.Count)
+                {
+                    currentLayerIndex = layers.Count - 1;
+                }
+
+                UpdateLayerListUI();
+                canvas.Invalidate();
+            }
+            else
+            {
+                MessageBox.Show("Cannot delete the last layer.", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
+            bm = CurrentLayer.Bitmap;
             Color old_clr=bm.GetPixel(x, y);
             if (old_clr == new_clr)
             {

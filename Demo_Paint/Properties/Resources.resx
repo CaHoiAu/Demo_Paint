@@ -130,9 +130,6 @@
   <data name="eyedropper_drawing1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\eyedropper_drawing1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Pen-0211" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Pen-0211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="star1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\star1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -184,6 +181,9 @@
   <data name="4pointstar12" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\4pointstar12.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="movedown1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\movedown1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="1604761" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\1604761.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -226,8 +226,8 @@
   <data name="rec211" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rec211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="rotate11" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rotate11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="bin1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\bin1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -271,6 +271,9 @@
   <data name="diamond1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\diamond1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="rotate11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rotate11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="pnghut_arrow-clip-art-black-and-white-down11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pnghut_arrow-clip-art-black-and-white-down11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -295,6 +298,9 @@
   <data name="4pointstar11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\4pointstar11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="open1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\open1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="heart1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\heart1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -307,11 +313,14 @@
   <data name="6583091" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\6583091.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="openfile2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\openfile2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="pencil" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pencil.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="open1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\open1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="Pen-0211" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Pen-0211.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="crop11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\crop11.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -331,7 +340,7 @@
   <data name="noun-dashed-rectangle1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\noun-dashed-rectangle1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="openfile2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\openfile2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="moveup1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\moveup1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

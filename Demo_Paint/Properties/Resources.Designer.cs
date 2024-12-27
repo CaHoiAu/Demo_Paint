@@ -123,6 +123,16 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap bin1 {
+            get {
+                object obj = ResourceManager.GetObject("bin1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap bucket_drawing1 {
             get {
                 object obj = ResourceManager.GetObject("bucket_drawing1", resourceCulture);
@@ -336,6 +346,26 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap manfier_drawing1 {
             get {
                 object obj = ResourceManager.GetObject("manfier_drawing1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap movedown1 {
+            get {
+                object obj = ResourceManager.GetObject("movedown1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap moveup1 {
+            get {
+                object obj = ResourceManager.GetObject("moveup1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
