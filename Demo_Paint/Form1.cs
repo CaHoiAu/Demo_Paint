@@ -353,22 +353,26 @@ namespace Demo_Paint
                 CommitAllTexts();
             }
 
-            if (index != 5) // Not magnifier
+            // Only save state if we're not using selection tool
+            if (index != 5 && !selectionToolActive) // Modified condition
             {
                 SaveState();
             }
+
             if (index == 1 || index == 2)
             {
                 SaveDrawingState();
                 px = e.Location;
             }
+
             if (selectionToolActive)
             {
                 if (!isSelectionInRegion(e.Location))
                 {
-                    // If there was a previous selection, finalize it
+                    // If there was a previous selection, finalize it and save state once
                     if (!selectionRectangle.IsEmpty && copiedRegionBitmap != null)
                     {
+                        SaveState(); // Save state before committing the selection
                         ClearOriginalArea();
                         PasteCopiedRegion(new Point(selectionRectangle.X, selectionRectangle.Y));
                         copiedRegionBitmap = null;
@@ -395,6 +399,7 @@ namespace Demo_Paint
                     pastePosition = e.Location;
                     if (copiedRegionBitmap == null)
                     {
+                        SaveState(); // Save state before moving selection
                         CopySelectedRegion();
                         ClearOriginalArea();
                     }
@@ -675,6 +680,8 @@ namespace Demo_Paint
                 }
 
                 textObjects.Clear(); // Clear the text objects after committing
+                isTyping = false;
+                inputText = "";
                 canvas.Invalidate();
             }
         }
@@ -864,7 +871,6 @@ namespace Demo_Paint
                     };
                     textObjects.Add(textObj);
 
-                    SaveState();
                     isTyping = false;
                     inputText = "";
                 }
@@ -1142,34 +1148,38 @@ namespace Demo_Paint
 
         private void SaveState()
         {
-
-            if (index == 1 || index == 2 || index == 3 || index == 6) // Pen, Eraser, Fill, Text tools
+            if ((index == 1 || index == 2 || index == 3 || index == 6) // Drawing tools
+        && layers != null && index != 5)
             {
-                if (layers != null && index != 5)
+                // Create deep copies of all layers
+                List<Layer> layersCopy = new List<Layer>();
+                foreach (var layer in layers)
                 {
-                    // Create deep copies of all layers
-                    List<Layer> layersCopy = new List<Layer>();
-                    foreach (var layer in layers)
+                    Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                    using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
                     {
-                        Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
-                        using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
-                        {
-                            gr.DrawImage(layer.Bitmap, 0, 0);
-                        }
-                        layerCopy.Visible = layer.Visible;
-                        layersCopy.Add(layerCopy);
+                        gr.DrawImage(layer.Bitmap, 0, 0);
                     }
-
-                    // Save state with layers and text objects
-                    undoStack.Push(new SavedState
-                    {
-                        Layers = layersCopy,
-                        TextObjects = new List<TextObject>(textObjects)
-                    });
-                    redoStack.Clear();
+                    layerCopy.Visible = layer.Visible;
+                    layersCopy.Add(layerCopy);
                 }
+
+                // Save regular drawing state
+                undoStack.Push(new SavedState
+                {
+                    Layers = layersCopy,
+                    TextObjects = new List<TextObject>(textObjects),
+                    IsSelectionOperation = false
+                });
+                redoStack.Clear();
+            }
+            else if (selectionToolActive) // Selection operations
+            {
+                // Save selection state using your existing method
+                SaveSelectionState();
             }
         }
+
         private class SelectionState
         {
             public Bitmap SelectionBitmap { get; set; }
@@ -1187,6 +1197,22 @@ namespace Demo_Paint
         {
             public List<Layer> Layers { get; set; }
             public List<TextObject> TextObjects { get; set; }
+            public bool IsSelectionOperation { get; set; }
+
+            public SavedState()
+            {
+                Layers = new List<Layer>();
+                TextObjects = new List<TextObject>();
+                IsSelectionOperation = false;
+            }
+
+            // Add parameterized constructor if needed
+            public SavedState(List<Layer> layers, List<TextObject> textObjects, bool isSelectionOperation = false)
+            {
+                Layers = layers;
+                TextObjects = textObjects;
+                IsSelectionOperation = isSelectionOperation;
+            }
         }
         private Stack<SelectionState> selectionUndoStack = new Stack<SelectionState>();
         private Stack<SelectionState> selectionRedoStack = new Stack<SelectionState>();
@@ -1348,52 +1374,22 @@ namespace Demo_Paint
         }
         private void Undo()
         {
-            if (undoStack.Count > 0 || selectionUndoStack.Count > 0)
+            if (selectionToolActive && selectionUndoStack.Count > 0)
             {
-                // Handle selection undo if there's a selection operation to undo
-                if (selectionUndoStack.Count > 0)
-                {
-                    // Save current state to redo before undoing
-                    SaveCurrentSelectionToRedo();
-
-                    // Get the previous state
-                    SelectionState previousState = selectionUndoStack.Pop();
-
-                    // Restore the layer state
-                    using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
-                    {
-                        g.Clear(Color.Transparent);
-                        g.DrawImage(previousState.LayerBeforeChange, 0, 0);
-                    }
-
-                    // Clear current selection state
-                    copiedRegionBitmap = null;
-                    selectionRectangle = Rectangle.Empty;
-                    freeFormPoints.Clear();
-                    selectionToolActive = false;
-                    isMoving = false;
-                    currentMode = SelectionMode.Rectangle; // or your default mode
-                }
-                // Handle drawing undo if there's a drawing operation to undo
-                else if (undoStack.Count > 0)
-                {
-                    SaveCurrentDrawingToRedo();
-                    SavedState previousState = undoStack.Pop();
-
-                    // Restore layers
-                    layers.Clear();
-                    foreach (var layer in previousState.Layers)
-                    {
-                        layers.Add(layer);
-                    }
-
-                    // Restore text objects
-                    textObjects = previousState.TextObjects;
-                }
-
-                canvas.Invalidate();
-                UpdateLayerListUI();
+                // Handle selection undo
+                SaveCurrentSelectionToRedo();
+                SelectionState previousState = selectionUndoStack.Pop();
+                RestoreSelectionState(previousState);
             }
+            else if (undoStack.Count > 0)
+            {
+                // Handle regular drawing undo
+                SaveCurrentDrawingToRedo();
+                SavedState previousState = undoStack.Pop();
+                RestoreState(previousState);
+            }
+            canvas.Invalidate();
+            UpdateLayerListUI();
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
@@ -1402,52 +1398,76 @@ namespace Demo_Paint
         }
         private void Redo()
         {
-            if (redoStack.Count > 0 || selectionRedoStack.Count > 0)
+            if (selectionToolActive && selectionRedoStack.Count > 0)
             {
-                // Handle selection redo if there's a selection operation to redo
-                if (selectionRedoStack.Count > 0)
-                {
-                    // Save current state to undo before redoing
-                    SaveCurrentSelectionToUndo();
-
-                    // Get the next state
-                    SelectionState nextState = selectionRedoStack.Pop();
-
-                    // Restore the layer state
-                    using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
-                    {
-                        g.Clear(Color.Transparent);
-                        g.DrawImage(nextState.LayerBeforeChange, 0, 0);
-                    }
-
-                    // Clear current selection state
-                    copiedRegionBitmap = null;
-                    selectionRectangle = Rectangle.Empty;
-                    freeFormPoints.Clear();
-                    selectionToolActive = false;
-                    isMoving = false;
-                    currentMode = SelectionMode.Rectangle; // or your default mode
-                }
-                // Handle drawing redo if there's a drawing operation to redo
-                else if (redoStack.Count > 0)
-                {
-                    SaveCurrentDrawingToUndo();
-                    SavedState nextState = redoStack.Pop();
-
-                    // Restore layers
-                    layers.Clear();
-                    foreach (var layer in nextState.Layers)
-                    {
-                        layers.Add(layer);
-                    }
-
-                    // Restore text objects
-                    textObjects = nextState.TextObjects;
-                }
-
-                canvas.Invalidate();
-                UpdateLayerListUI();
+                // Handle selection redo
+                SaveCurrentSelectionToUndo();
+                SelectionState nextState = selectionRedoStack.Pop();
+                RestoreSelectionState(nextState);
             }
+            else if (redoStack.Count > 0)
+            {
+                // Handle regular drawing redo
+                SaveCurrentDrawingToUndo();
+                SavedState nextState = redoStack.Pop();
+                RestoreState(nextState);
+            }
+            canvas.Invalidate();
+            UpdateLayerListUI();
+        }
+        private void RestoreSelectionState(SelectionState state)
+        {
+            // Restore the layer to its previous state
+            if (state.LayerBeforeChange != null)
+            {
+                using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.DrawImage(state.LayerBeforeChange, 0, 0);
+                }
+            }
+
+            // Restore selection properties
+            selectionRectangle = state.SelectionRectangle;
+            freeFormPoints = new List<Point>(state.FreeFormPoints);
+            selectionToolActive = state.IsSelectionActive;
+            isMoving = state.IsMoving;
+            pastePosition = state.PastePosition;
+            currentMode = state.CurrentMode;
+
+            // Restore the selection bitmap
+            if (state.SelectionBitmap != null)
+            {
+                if (copiedRegionBitmap != null)
+                {
+                    copiedRegionBitmap.Dispose();
+                }
+                copiedRegionBitmap = new Bitmap(state.SelectionBitmap);
+            }
+            else
+            {
+                copiedRegionBitmap = null;
+            }
+
+            canvas.Invalidate();
+        }
+        private void RestoreState(SavedState state)
+        {
+            // Clear any active selection
+            copiedRegionBitmap = null;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            selectionToolActive = false;
+
+            // Restore layers
+            layers.Clear();
+            foreach (var layer in state.Layers)
+            {
+                layers.Add(layer);
+            }
+
+            // Restore text objects
+            textObjects = state.TextObjects;
         }
         private void btnRedo_Click(object sender, EventArgs e)
         {
@@ -1823,23 +1843,30 @@ namespace Demo_Paint
                 }
             }
 
-            // Draw the current text box if typing
-            if (isTyping)
+            if (index == 6) // Text tool selected
             {
-                using (Pen rectPen = new Pen(Color.Black, 1))
+                foreach (var textObj in textObjects)
                 {
-                    Rectangle scaledRect = new Rectangle(
-                        (int)(textBoxRect.X * zoomFactor),
-                        (int)(textBoxRect.Y * zoomFactor),
-                        (int)(textBoxRect.Width * zoomFactor),
-                        (int)(textBoxRect.Height * zoomFactor)
-                    );
-                    e.Graphics.DrawRectangle(rectPen, scaledRect);
+                    using (Brush brush = new SolidBrush(textObj.Color))
+                    {
+                        DrawTextInRectangle(e.Graphics, textObj.Text, textObj.Rect, textObj.Font, brush);
+                    }
                 }
 
-                if (!string.IsNullOrEmpty(inputText))
+                // Draw current text box if typing
+                if (isTyping)
                 {
-                    DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, textBrush);
+                    using (Pen pen = new Pen(Color.Black, 1))
+                    {
+                        e.Graphics.DrawRectangle(pen, textBoxRect);
+                    }
+                    if (!string.IsNullOrEmpty(inputText))
+                    {
+                        using (Brush brush = new SolidBrush(pic_ColorStroke.BackColor))
+                        {
+                            DrawTextInRectangle(e.Graphics, inputText, textBoxRect, textFont, brush);
+                        }
+                    }
                 }
             }
 
@@ -1967,20 +1994,37 @@ namespace Demo_Paint
                 using (Bitmap originalBitmap = new Bitmap(Clipboard.GetImage()))
                 {
                     copiedRegionBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
-                    for (int x = 0; x < originalBitmap.Width; x++)
+
+                    // Check if the bitmap has any non-white pixels (content)
+                    bool hasContent = false;
+                    for (int x = 0; x < originalBitmap.Width && !hasContent; x++)
                     {
-                        for (int y = 0; y < originalBitmap.Height; y++)
+                        for (int y = 0; y < originalBitmap.Height && !hasContent; y++)
                         {
                             Color pixelColor = originalBitmap.GetPixel(x, y);
-                            // Treat white as transparent
-                            if (pixelColor.R == 255 && pixelColor.G == 255 && pixelColor.B == 255)
+                            // If pixel is not white, it's considered content
+                            if (pixelColor.R != 255 || pixelColor.G != 255 || pixelColor.B != 255)
                             {
-                                copiedRegionBitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+                                hasContent = true;
+                                break;
                             }
-                            else
-                            {
-                                copiedRegionBitmap.SetPixel(x, y, pixelColor);
-                            }
+                        }
+                    }
+
+                    // If no content found, make it transparent
+                    if (!hasContent)
+                    {
+                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        {
+                            g.Clear(Color.Transparent);
+                        }
+                    }
+                    else  // If has content, copy the original image
+                    {
+                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                        {
+                            g.Clear(Color.Transparent);
+                            g.DrawImage(originalBitmap, 0, 0);
                         }
                     }
                 }
