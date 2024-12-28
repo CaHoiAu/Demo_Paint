@@ -584,7 +584,6 @@ namespace Demo_Paint
                     }
                 }
             }
-            TestBitmapTransparency(copiedRegionBitmap);
         }
         private void PasteCopiedRegion(Point pastePoint)
         {
@@ -1815,9 +1814,6 @@ namespace Demo_Paint
                 }
             }
 
-            // Remove this line since we're now using layers instead of bm
-            // e.Graphics.DrawImage(bm, 0, 0, canvas.Width, canvas.Height);
-
             // Draw textboxes
             foreach (var textObj in textObjects)
             {
@@ -1960,29 +1956,35 @@ namespace Demo_Paint
                 }
             }
         }
-
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveSelectionState();
             if (Clipboard.ContainsImage())
             {
-                // Clear any existing selection
                 selectionRectangle = Rectangle.Empty;
                 freeFormPoints.Clear();
 
-                // Get image from clipboard and create new bitmap with transparency support
                 using (Bitmap originalBitmap = new Bitmap(Clipboard.GetImage()))
                 {
                     copiedRegionBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
-                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                    for (int x = 0; x < originalBitmap.Width; x++)
                     {
-                        g.Clear(Color.Transparent);
-                        g.CompositingMode = CompositingMode.SourceOver;
-                        g.DrawImage(originalBitmap, 0, 0);
+                        for (int y = 0; y < originalBitmap.Height; y++)
+                        {
+                            Color pixelColor = originalBitmap.GetPixel(x, y);
+                            // Treat white as transparent
+                            if (pixelColor.R == 255 && pixelColor.G == 255 && pixelColor.B == 255)
+                            {
+                                copiedRegionBitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+                            }
+                            else
+                            {
+                                copiedRegionBitmap.SetPixel(x, y, pixelColor);
+                            }
+                        }
                     }
                 }
 
-                // Create new selection rectangle at cursor position
                 Point pasteLocation = new Point(10, 10);
                 selectionRectangle = new Rectangle(
                     pasteLocation.X,
@@ -1991,7 +1993,6 @@ namespace Demo_Paint
                     copiedRegionBitmap.Height
                 );
 
-                // Set up for moving the pasted content
                 isMoving = true;
                 pastePosition = pasteLocation;
                 currentMode = SelectionMode.Rectangle;
