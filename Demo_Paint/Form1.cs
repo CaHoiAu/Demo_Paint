@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
@@ -21,6 +22,51 @@ namespace Demo_Paint
 {
     public partial class Form1 : Form
     {
+        //Các biến làm việc vs File
+        private string currentFilePath = string.Empty;
+        private bool hasUnsavedChanges = false;
+        //Các biến cho Shape
+        public enum ShapeType
+        {
+            Line,
+            Rectangle,
+            Ellipse,
+            Curve,
+            Triangle,
+            Star,
+            Pentagon,
+            Diamond,
+            Heart,
+            FourPointStar
+        }
+
+        public class Shape
+        {
+            public Shape()
+            {
+                // Initialize all points to avoid null reference
+                StartPoint = new Point(0, 0);
+                EndPoint = new Point(0, 0);
+                p3 = new Point(0, 0);
+                p4 = new Point(0, 0);
+            }
+            public Point StartPoint { get; set; }
+            public Point EndPoint { get; set; }
+            public Point p3 { get; set; }
+            public Point p4 { get; set; }
+            public ShapeType Type { get; set; }
+            public Color Color { get; set; }
+            public float Size { get; set; }
+            public List<Point> CurvePoints { get; set; }
+        }
+
+        private int countBezier = 0;
+        private List<Shape> shapes = new List<Shape>();
+        private bool isStart = false;
+        private Shape currentShape;
+        private ShapeType currentShapeType = ShapeType.Line; // Default shape type
+
+        // Các biến cho layers
         public class Layer
         {
             public Bitmap Bitmap { get; set; }
@@ -364,7 +410,41 @@ namespace Demo_Paint
                 SaveDrawingState();
                 px = e.Location;
             }
-
+            isStart = true;
+            if (index == 9)  // Shape tool
+            {
+                if (currentShapeType == ShapeType.Curve)
+                {
+                    if (countBezier == 0)
+                    {
+                        Shape newShape = new Shape
+                        {
+                            StartPoint = imagePoint,
+                            EndPoint = imagePoint,
+                            p3 = imagePoint,      // Note: Changed from p3 to P3
+                            p4 = imagePoint,      // Note: Changed from p4 to P4
+                            Type = ShapeType.Curve,
+                            Color = pic_ColorStroke.BackColor,
+                            Size = brushsize
+                        };
+                        shapes.Add(newShape);
+                    }
+                    // Remove the shape removal code here since we want to keep modifying the same shape
+                }
+                else
+                {
+                    // Non-curve shapes
+                    Shape newShape = new Shape
+                    {
+                        StartPoint = imagePoint,
+                        EndPoint = imagePoint,
+                        Type = currentShapeType,
+                        Color = pic_ColorStroke.BackColor,
+                        Size = brushsize
+                    };
+                    shapes.Add(newShape);
+                }
+            }
             if (selectionToolActive)
             {
                 if (!isSelectionInRegion(e.Location))
@@ -433,6 +513,44 @@ namespace Demo_Paint
         {
             // Update mouse coordinates in the status bar
             toolStripStatusLabel2.Text = $"{e.X}, {e.Y}px";
+            if (isStart && index == 9 && shapes.Count > 0)
+            {
+                try
+                {
+                    Point imagePoint = GetImagePoint(e.Location);
+                    Shape lastShape = shapes[shapes.Count - 1];
+
+                    if (currentShapeType == ShapeType.Curve)
+                    {
+                        // Handle curve drawing
+                        switch (countBezier)
+                        {
+                            case 0:
+                                lastShape.EndPoint = imagePoint;
+                                lastShape.p3 = imagePoint;
+                                lastShape.p4 = imagePoint;
+                                break;
+                            case 1:
+                                lastShape.p3 = imagePoint;
+                                lastShape.EndPoint = imagePoint;
+                                break;
+                            case 2:
+                                lastShape.EndPoint = imagePoint;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Handle other shapes
+                        lastShape.EndPoint = imagePoint;
+                    }
+                    canvas.Invalidate();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in MouseMove: {ex.Message}");
+                }
+            }
             // Handle drawing tools (pen or eraser)
             if (paint && (index == 1 || index == 2))
             {
@@ -620,8 +738,209 @@ namespace Demo_Paint
             }
         }
         private bool isShapeClosed = false;
+        private void DrawShapeOnGraphics(Graphics g, Shape shape)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(shape.Color, shape.Size))
+            {
+                pen.StartCap = LineCap.Round;
+                pen.EndCap = LineCap.Round;
+
+                switch (shape.Type)
+                {
+                    case ShapeType.Line:
+                        g.DrawLine(pen, shape.StartPoint, shape.EndPoint);
+                        break;
+
+                    case ShapeType.Rectangle:
+                        Rectangle rect = new Rectangle(
+                            Math.Min(shape.StartPoint.X, shape.EndPoint.X),
+                            Math.Min(shape.StartPoint.Y, shape.EndPoint.Y),
+                            Math.Abs(shape.EndPoint.X - shape.StartPoint.X),
+                            Math.Abs(shape.EndPoint.Y - shape.StartPoint.Y)
+                        );
+                        g.DrawRectangle(pen, rect);
+                        break;
+
+                    case ShapeType.Ellipse:
+                        Rectangle ellipseRect = new Rectangle(
+                            Math.Min(shape.StartPoint.X, shape.EndPoint.X),
+                            Math.Min(shape.StartPoint.Y, shape.EndPoint.Y),
+                            Math.Abs(shape.EndPoint.X - shape.StartPoint.X),
+                            Math.Abs(shape.EndPoint.Y - shape.StartPoint.Y)
+                        );
+                        g.DrawEllipse(pen, ellipseRect);
+                        break;
+                    case ShapeType.Triangle:
+                        Point[] trianglePoints = new Point[3];
+                        trianglePoints[0] = new Point((shape.StartPoint.X + shape.EndPoint.X) / 2, shape.StartPoint.Y);
+                        trianglePoints[1] = new Point(shape.StartPoint.X, shape.EndPoint.Y);
+                        trianglePoints[2] = new Point(shape.EndPoint.X, shape.EndPoint.Y);
+                        g.DrawPolygon(pen, trianglePoints);
+                        break;
+                    case ShapeType.Pentagon:
+                        Point[] pentagonPoints= new Point[6];
+                        pentagonPoints[0] = new Point((shape.StartPoint.X + shape.EndPoint.X) / 2, shape.StartPoint.Y);
+                        pentagonPoints[1] = new Point(shape.StartPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) / 4);
+                        pentagonPoints[2] = new Point(shape.StartPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) * 3 / 4);
+                        pentagonPoints[3] = new Point((shape.StartPoint.X + shape.EndPoint.X) / 2, shape.EndPoint.Y);
+                        pentagonPoints[4] = new Point(shape.EndPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) * 3 / 4);
+                        pentagonPoints[5] = new Point(shape.EndPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) / 4);
+                        g.DrawPolygon(pen, pentagonPoints);
+                        break;
+                    case ShapeType.Star:
+                        // Calculate the center and radius
+                        int centerX = (shape.StartPoint.X + shape.EndPoint.X) / 2;
+                        int centerY = (shape.StartPoint.Y + shape.EndPoint.Y) / 2;
+                        double radius = Math.Min(
+                            Math.Abs(shape.EndPoint.X - shape.StartPoint.X),
+                            Math.Abs(shape.EndPoint.Y - shape.StartPoint.Y)) / 2;
+                        double innerRadius = radius * 0.4; // Inner radius is 40% of outer radius
+
+                        // Create points array for the star (10 points for 5 points star)
+                        Point[] starPoints = new Point[10];
+
+                        // Calculate the 10 points (5 outer and 5 inner points)
+                        for (int i = 0; i < 10; i++)
+                        {
+                            // Alternate between outer and inner radius
+                            double currentRadius = (i % 2 == 0) ? radius : innerRadius;
+
+                            // Calculate angle (36 degrees = 360/10 points)
+                            double angle = i * 36 * Math.PI / 180;
+
+                            // Calculate point position
+                            starPoints[i] = new Point(
+                                (int)(centerX + currentRadius * Math.Sin(angle)),
+                                (int)(centerY - currentRadius * Math.Cos(angle))
+                            );
+                        }
+
+                        // Draw the star
+                        g.DrawPolygon(pen, starPoints);
+                        break;
+                    case ShapeType.Diamond:
+                        Point[] diamondPoints = new Point[4];
+                        diamondPoints[0] = new Point((shape.StartPoint.X + shape.EndPoint.X) / 2, shape.StartPoint.Y);
+                        diamondPoints[1] = new Point(shape.StartPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) / 2);
+                        diamondPoints[2] = new Point((shape.StartPoint.X + shape.EndPoint.X) / 2, shape.EndPoint.Y);
+                        diamondPoints[3] = new Point(shape.EndPoint.X, shape.StartPoint.Y + (shape.EndPoint.Y - shape.StartPoint.Y) / 2);
+                        g.DrawPolygon(pen, diamondPoints);
+                        break;
+                    case ShapeType.FourPointStar:
+                        int ctX = (shape.StartPoint.X + shape.EndPoint.X) / 2;
+                        int ctY = (shape.StartPoint.Y + shape.EndPoint.Y) / 2;
+                        double R = Math.Min(
+                            Math.Abs(shape.EndPoint.X - shape.StartPoint.X),
+                            Math.Abs(shape.EndPoint.Y - shape.StartPoint.Y)) / 2;
+                        double innerR = R * 0.4; // Inner radius is 40% of outer radius
+
+                        Point[] fourStarPoints = new Point[8];
+
+                        for (int i = 0; i < 8; i++)
+                        {
+                            double currentRadius = (i % 2 == 0) ? R : innerR;
+
+                            double angle = i * 45 * Math.PI / 180;
+
+                            fourStarPoints[i] = new Point(
+                                (int)(ctX + currentRadius * Math.Sin(angle)),
+                                (int)(ctY - currentRadius * Math.Cos(angle))
+                            );
+                        }
+
+                        g.DrawPolygon(pen, fourStarPoints);
+                        break;
+                    case ShapeType.Heart:
+                        int width = Math.Abs(shape.EndPoint.X - shape.StartPoint.X);
+                        int height = Math.Abs(shape.EndPoint.Y - shape.StartPoint.Y);
+                        int x = Math.Min(shape.StartPoint.X, shape.EndPoint.X);
+                        int y = Math.Min(shape.StartPoint.Y, shape.EndPoint.Y);
+
+                        // Create path for the heart
+                        using (GraphicsPath path = new GraphicsPath())
+                        {
+                            // Move to top center
+                            int topCenterX = x + width / 2;
+
+                            // Create the left curve
+                            path.AddBezier(
+                                topCenterX, y + height / 3,    // Start point
+                                x, y,                          // Control point 1
+                                x, y + height * 8/10,            // Control point 2
+                                topCenterX, y + height       // End point
+                            );
+
+                            // Create the right curve
+                            path.AddBezier(
+                                topCenterX, y + height,        // Start point
+                                x + width, y + height * 8/10,     // Control point 1
+                                x + width, y,                  // Control point 2
+                                topCenterX, y + height / 3     // End point
+                            );
+
+                            // Draw the heart
+                            g.DrawPath(pen, path);
+                        }
+                        break;
+                    case ShapeType.Curve:
+                        g.DrawBezier(pen,
+                            shape.StartPoint,  // Start point
+                            shape.p3,         // Control point 1
+                            shape.p4,         // Control point 2
+                            shape.EndPoint    // End point
+                        );
+                        break;
+                }
+            }
+        }
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
+            if (index == 9)
+            {
+                if (currentShapeType == ShapeType.Curve)
+                {
+                    countBezier++;
+                    if (countBezier == 3)
+                    {
+                        countBezier = 0;
+                        if (isStart)
+                        {
+                            SaveDrawingState();
+                            if (shapes.Count > 0)
+                            {
+                                Shape finalShape = shapes[shapes.Count - 1];
+                                using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                                {
+                                    DrawShapeOnGraphics(g, finalShape);
+                                }
+                                shapes.Clear();
+                            }
+                            canvas.Invalidate();
+                        }
+                        isStart = false;
+                    }
+                }
+                else
+                {
+                    // Handle other shapes
+                    if (isStart)
+                    {
+                        SaveDrawingState();
+                        if (shapes.Count > 0)
+                        {
+                            Shape finalShape = shapes[shapes.Count - 1];
+                            using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                            {
+                                DrawShapeOnGraphics(g, finalShape);
+                            }
+                            shapes.Clear();
+                        }
+                        canvas.Invalidate();
+                    }
+                    isStart = false;
+                }
+            }
             paint = false;
             if (selectionToolActive)
             {
@@ -666,10 +985,16 @@ namespace Demo_Paint
         {
             if (textObjects.Count > 0)
             {
-                SaveState();
+                SaveDrawingState();
 
+                // Only commit text to the current layer
                 using (Graphics graphics = Graphics.FromImage(CurrentLayer.Bitmap))
                 {
+                    graphics.SmoothingMode = SmoothingMode.HighQuality;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                    graphics.CompositingMode = CompositingMode.SourceOver;
+
                     foreach (var textObj in textObjects)
                     {
                         using (Brush brush = new SolidBrush(textObj.Color))
@@ -825,13 +1150,36 @@ namespace Demo_Paint
                 Fill(CurrentLayer.Bitmap, imagePoint.X, imagePoint.Y, pic_ColorFill.BackColor);
                 canvas.Invalidate();
             }
-            else if (index == 4)
+            else if (index == 4) // Color picker tool
             {
                 Point imagePoint = GetImagePoint(e.Location);
-                if (imagePoint.X >= 0 && imagePoint.X < bm.Width && imagePoint.Y >= 0 && imagePoint.Y < bm.Height)
+
+                // Make sure we're within bounds
+                if (imagePoint.X >= 0 && imagePoint.X < CurrentLayer.Bitmap.Width &&
+                    imagePoint.Y >= 0 && imagePoint.Y < CurrentLayer.Bitmap.Height)
                 {
-                    Color pickedClr = bm.GetPixel(imagePoint.X, imagePoint.Y);
-                    pic_ColorStroke.BackColor = pickedClr;
+                    // Get color from the current layer
+                    Color pickedColor = CurrentLayer.Bitmap.GetPixel(imagePoint.X, imagePoint.Y);
+
+                    // If the picked pixel is transparent, check other visible layers from top to bottom
+                    if (pickedColor.A == 0)
+                    {
+                        for (int i = layers.Count - 1; i >= 0; i--)
+                        {
+                            if (layers[i].Visible)
+                            {
+                                Color layerColor = layers[i].Bitmap.GetPixel(imagePoint.X, imagePoint.Y);
+                                if (layerColor.A > 0)
+                                {
+                                    pickedColor = layerColor;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Update the color picker
+                    pic_ColorStroke.BackColor = pickedColor;
                 }
             }
             else if (index == 5)
@@ -1042,35 +1390,78 @@ namespace Demo_Paint
         }
         private void UpdateCanvasZoom(Point zoomCenter)
         {
+            // If no bitmap exists, return
+            if (layers == null || layers.Count == 0) return;
 
-            float relativeX = (float)zoomCenter.X / canvas.Width;
-            float relativeY = (float)zoomCenter.Y / canvas.Height;
+            // Use CurrentLayer property instead of direct bitmap reference
+            Layer baseLayer = layers[0];  // Use base layer for size calculations
 
-            // Calculate new dimensions
-            int newWidth = (int)(bm.Width * zoomFactor);
-            int newHeight = (int)(bm.Height * zoomFactor);
-            UpdateCanvasSize();
+            // Calculate new dimensions based on the base layer dimensions
+            int baseWidth = baseLayer.Bitmap.Width;
+            int baseHeight = baseLayer.Bitmap.Height;
+            int newWidth = (int)(baseWidth * zoomFactor);
+            int newHeight = (int)(baseHeight * zoomFactor);
+
             // Update canvas size
-            canvas.Width = newWidth;
-            canvas.Height = newHeight;
+            canvas.Size = new Size(newWidth, newHeight);
 
-            // Calculate new scroll position to keep the zoom center point in view
+            // Update the main bitmap size if needed
+            if (bm == null || bm.Size != baseLayer.Bitmap.Size)
+            {
+                if (bm != null) bm.Dispose();
+                bm = new Bitmap(baseWidth, baseHeight);
+                canvas.Image = bm;
+            }
+
             if (panelCanvas != null)
             {
-                int newX = (int)(newWidth * relativeX - panelCanvas.ClientSize.Width / 2);
-                int newY = (int)(newHeight * relativeY - panelCanvas.ClientSize.Height / 2);
+                if (zoomCenter != Point.Empty)
+                {
+                    // Calculate relative position for zoom center
+                    float relativeX = (float)zoomCenter.X / canvas.Width;
+                    float relativeY = (float)zoomCenter.Y / canvas.Height;
 
-                // Ensure scroll positions are within valid range
-                panelCanvas.AutoScrollPosition = new Point(
-                    Math.Max(0, Math.Min(newX, panelCanvas.HorizontalScroll.Maximum)),
-                    Math.Max(0, Math.Min(newY, panelCanvas.VerticalScroll.Maximum))
+                    int newX = (int)(newWidth * relativeX - panelCanvas.ClientSize.Width / 2);
+                    int newY = (int)(newHeight * relativeY - panelCanvas.ClientSize.Height / 2);
+
+                    // Update scroll position
+                    panelCanvas.AutoScrollPosition = new Point(
+                        Math.Max(0, Math.Min(newX, panelCanvas.HorizontalScroll.Maximum)),
+                        Math.Max(0, Math.Min(newY, panelCanvas.VerticalScroll.Maximum))
+                    );
+                }
+
+                // Update scroll area
+                panelCanvas.AutoScrollMinSize = new Size(
+                    Math.Max(newWidth, panelCanvas.ClientSize.Width),
+                    Math.Max(newHeight, panelCanvas.ClientSize.Height)
                 );
             }
 
             // Update zoom level display
             toolStripStatusLabel1.Text = $"Zoom: {(int)(zoomFactor * 100)}%";
 
+            // Make sure to redraw all layers
+            RedrawLayers();
             canvas.Invalidate();
+        }
+        private void RedrawLayers()
+        {
+            if (bm == null || layers == null || layers.Count == 0) return;
+
+            using (Graphics g = Graphics.FromImage(bm))
+            {
+                g.Clear(Color.Transparent);
+
+                // Draw each visible layer
+                foreach (Layer layer in layers)
+                {
+                    if (layer.Visible)
+                    {
+                        g.DrawImage(layer.Bitmap, 0, 0, layer.Bitmap.Width, layer.Bitmap.Height);
+                    }
+                }
+            }
         }
         private void CenterCanvas()
         {
@@ -1148,8 +1539,7 @@ namespace Demo_Paint
 
         private void SaveState()
         {
-            if ((index == 1 || index == 2 || index == 3 || index == 6) // Drawing tools
-        && layers != null && index != 5)
+            if (layers != null && index != 5)  // Remove specific tool checks to simplify
             {
                 // Create deep copies of all layers
                 List<Layer> layersCopy = new List<Layer>();
@@ -1158,25 +1548,20 @@ namespace Demo_Paint
                     Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
                     using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
                     {
+                        gr.Clear(Color.Transparent);
                         gr.DrawImage(layer.Bitmap, 0, 0);
                     }
                     layerCopy.Visible = layer.Visible;
                     layersCopy.Add(layerCopy);
                 }
 
-                // Save regular drawing state
+                // Save state with layers and text objects
                 undoStack.Push(new SavedState
                 {
                     Layers = layersCopy,
-                    TextObjects = new List<TextObject>(textObjects),
-                    IsSelectionOperation = false
+                    TextObjects = new List<TextObject>(textObjects)
                 });
                 redoStack.Clear();
-            }
-            else if (selectionToolActive) // Selection operations
-            {
-                // Save selection state using your existing method
-                SaveSelectionState();
             }
         }
 
@@ -1218,15 +1603,38 @@ namespace Demo_Paint
         private Stack<SelectionState> selectionRedoStack = new Stack<SelectionState>();
         private void SaveDrawingState()
         {
+            // First commit any pending text
+            if (textObjects.Count > 0)
+            {
+                // Draw text onto current layer before saving state
+                using (Graphics graphics = Graphics.FromImage(CurrentLayer.Bitmap))
+                {
+                    graphics.SmoothingMode = SmoothingMode.HighQuality;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                    graphics.CompositingMode = CompositingMode.SourceOver;
+
+                    foreach (var textObj in textObjects)
+                    {
+                        using (Brush brush = new SolidBrush(textObj.Color))
+                        {
+                            DrawTextInRectangle(graphics, textObj.Text, textObj.Rect, textObj.Font, brush);
+                        }
+                    }
+                }
+                textObjects.Clear();
+            }
+
+            // Then save the state with the committed text
             if (layers != null)
             {
-                // Create deep copies of all layers
                 List<Layer> layersCopy = new List<Layer>();
                 foreach (var layer in layers)
                 {
                     Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
                     using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
                     {
+                        gr.Clear(Color.Transparent);  // Clear first to ensure proper transparency
                         gr.DrawImage(layer.Bitmap, 0, 0);
                     }
                     layerCopy.Visible = layer.Visible;
@@ -1236,10 +1644,12 @@ namespace Demo_Paint
                 undoStack.Push(new SavedState
                 {
                     Layers = layersCopy,
-                    TextObjects = new List<TextObject>(textObjects)
+                    TextObjects = new List<TextObject>() // Empty list since text is committed
                 });
                 redoStack.Clear();
             }
+
+            canvas.Invalidate();
         }
 
         private void SaveSelectionState()
@@ -1376,44 +1786,71 @@ namespace Demo_Paint
         {
             if (selectionToolActive && selectionUndoStack.Count > 0)
             {
-                // Handle selection undo
-                SaveCurrentSelectionToRedo();
+                // Handle selection undo without saving current state
                 SelectionState previousState = selectionUndoStack.Pop();
+                selectionRedoStack.Push(previousState);
                 RestoreSelectionState(previousState);
+                canvas.Invalidate();
             }
             else if (undoStack.Count > 0)
             {
-                // Handle regular drawing undo
-                SaveCurrentDrawingToRedo();
+                // Handle regular drawing undo without saving current state
                 SavedState previousState = undoStack.Pop();
+                redoStack.Push(previousState);
                 RestoreState(previousState);
+                canvas.Invalidate();
+
+                // Only update layer UI if necessary
+                if (HasLayerStructureChanged(previousState))
+                {
+                    UpdateLayerListUI();
+                }
             }
-            canvas.Invalidate();
-            UpdateLayerListUI();
         }
 
-        private void btnUndo_Click(object sender, EventArgs e)
-        {
-            Undo();
-        }
         private void Redo()
         {
             if (selectionToolActive && selectionRedoStack.Count > 0)
             {
-                // Handle selection redo
-                SaveCurrentSelectionToUndo();
+                // Handle selection redo without saving current state
                 SelectionState nextState = selectionRedoStack.Pop();
+                selectionUndoStack.Push(nextState);
                 RestoreSelectionState(nextState);
+                canvas.Invalidate();
             }
             else if (redoStack.Count > 0)
             {
-                // Handle regular drawing redo
-                SaveCurrentDrawingToUndo();
+                // Handle regular drawing redo without saving current state
                 SavedState nextState = redoStack.Pop();
+                undoStack.Push(nextState);
                 RestoreState(nextState);
+                canvas.Invalidate();
+
+                // Only update layer UI if necessary
+                if (HasLayerStructureChanged(nextState))
+                {
+                    UpdateLayerListUI();
+                }
             }
-            canvas.Invalidate();
-            UpdateLayerListUI();
+        }
+        private void btnUndo_Click(object sender, EventArgs e)
+        {
+            Undo();
+        }
+        
+        private bool HasLayerStructureChanged(SavedState state)
+        {
+            if (layers.Count != state.Layers.Count)
+                return true;
+
+            for (int i = 0; i < layers.Count; i++)
+            {
+                if (layers[i].Name != state.Layers[i].Name ||
+                    layers[i].Visible != state.Layers[i].Visible)
+                    return true;
+            }
+
+            return false;
         }
         private void RestoreSelectionState(SelectionState state)
         {
@@ -1845,14 +2282,6 @@ namespace Demo_Paint
 
             if (index == 6) // Text tool selected
             {
-                foreach (var textObj in textObjects)
-                {
-                    using (Brush brush = new SolidBrush(textObj.Color))
-                    {
-                        DrawTextInRectangle(e.Graphics, textObj.Text, textObj.Rect, textObj.Font, brush);
-                    }
-                }
-
                 // Draw current text box if typing
                 if (isTyping)
                 {
@@ -1868,6 +2297,18 @@ namespace Demo_Paint
                         }
                     }
                 }
+            }
+
+            // Draw shapes
+            foreach (var shape in shapes)
+            {
+                DrawShapeOnGraphics(e.Graphics, shape);
+            }
+
+            // Draw current shape preview while dragging
+            if (paint && index == 9 && currentShape != null)
+            {
+                DrawShapeOnGraphics(e.Graphics, currentShape);
             }
 
             // Draw selection UI elements
@@ -1929,7 +2370,6 @@ namespace Demo_Paint
                 }
             }
         }
-
         private void btnSelection_Click(object sender, EventArgs e)
         {
             selectionRectangle = Rectangle.Empty;
@@ -2555,6 +2995,10 @@ namespace Demo_Paint
 
         private void UpdateLayerListUI()
         {
+            if (textObjects.Count > 0 && index == 6)
+            {
+                CommitAllTexts();
+            }
             layerPanel.Controls.Clear();
 
             // Add layers from bottom (oldest) to top (newest)
@@ -2617,6 +3061,12 @@ namespace Demo_Paint
         {
             if (currentLayerIndex < layers.Count - 1)
             {
+                // Commit any pending text before moving layers
+                if (textObjects.Count > 0)
+                {
+                    CommitAllTexts();
+                }
+
                 SaveDrawingState(); // Save state before moving
                 Layer temp = layers[currentLayerIndex];
                 layers[currentLayerIndex] = layers[currentLayerIndex + 1];
@@ -2631,6 +3081,12 @@ namespace Demo_Paint
         {
             if (currentLayerIndex > 0)
             {
+                // Commit any pending text before moving layers
+                if (textObjects.Count > 0)
+                {
+                    CommitAllTexts();
+                }
+
                 SaveDrawingState(); // Save state before moving
                 Layer temp = layers[currentLayerIndex];
                 layers[currentLayerIndex] = layers[currentLayerIndex - 1];
@@ -2640,9 +3096,12 @@ namespace Demo_Paint
                 canvas.Invalidate();
             }
         }
-
         private void deleteLayerToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (textObjects.Count > 0)
+            {
+                CommitAllTexts();
+            }
             if (layers.Count > 1) // Prevent deleting the last layer
             {
                 SaveDrawingState(); // Save state before deleting
@@ -2661,6 +3120,384 @@ namespace Demo_Paint
             {
                 MessageBox.Show("Cannot delete the last layer.", "Warning",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnLine_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType=ShapeType.Line;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnRect_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Rectangle;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnEllipse_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Ellipse;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnCurve_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            countBezier = 0;
+            currentShapeType = ShapeType.Curve;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnTriangle_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Triangle;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnStar_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Star;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnPentagon_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Pentagon;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnDiamond_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Diamond;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btn4PointStar_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.FourPointStar;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+
+        private void btnHeart_Click(object sender, EventArgs e)
+        {
+            index = 9;
+            currentShapeType = ShapeType.Heart;
+            selectionToolActive = false;
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            canvas.Invalidate();
+        }
+        private void NewDocument()
+        {
+            // Ask user if they want to save current work
+            if (HasUnsavedChanges())
+            {
+                DialogResult result = MessageBox.Show(
+                    "Do you want to save changes?",
+                    "Save Changes",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    SaveDocument();
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            // Show dialog for new canvas size
+            using (var sizeDialog = new NewDocumentDialog())
+            {
+                if (sizeDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Get the new dimensions
+                    int width = sizeDialog.CanvasWidth;
+                    int height = sizeDialog.CanvasHeight;
+
+                    // Clear undo/redo history
+                    undoStack.Clear();
+                    redoStack.Clear();
+
+                    // Reset zoom
+                    zoomFactor = 1.0f;
+
+                    // Clear all layers
+                    layers.Clear();
+
+                    // Initialize new bitmap
+                    bm = new Bitmap(width, height);
+                    g = Graphics.FromImage(bm);
+                    g.Clear(Color.White);
+                    canvas.Image = bm;
+
+                    // Create background layer (white)
+                    Layer backgroundLayer = new Layer(width, height, "Background");
+                    using (Graphics g = Graphics.FromImage(backgroundLayer.Bitmap))
+                    {
+                        g.Clear(Color.White);
+                    }
+                    layers.Add(backgroundLayer);
+
+                    // Create and add the first drawing layer (transparent)
+                    Layer layer1 = new Layer(width, height, "Layer 1");
+                    layers.Add(layer1);
+
+                    currentLayerIndex = 1;  // Set current layer to Layer 1
+
+                    // Reset all tools and states
+                    ResetToolStates();
+
+                    // Update canvas size
+                    canvas.Size = new Size(width, height);
+                    UpdateCanvasZoom(Point.Empty);
+
+                    // Reset file info
+                    currentFilePath = string.Empty;
+                    hasUnsavedChanges = false;
+                    UpdateFormTitle();
+
+                    // Update UI
+                    UpdateLayerListUI();
+                    CenterCanvas();
+                    canvas.Invalidate();
+                }
+            }
+        }
+        private bool HasUnsavedChanges()
+        {
+            // Check if there are any changes in the undo stack
+            return undoStack.Count > 0;
+        }
+
+        private void ResetToolStates()
+        {
+            // Reset all tool-related variables
+            isStart = false;
+            paint = false;
+            selectionToolActive = false;
+            isSelecting = false;
+            isMoving = false;
+            countBezier = 0;
+            currentMode = SelectionMode.Rectangle;
+            currentShapeType = ShapeType.Line;
+
+            // Clear temporary data
+            shapes.Clear();
+            textObjects.Clear();
+            selectionRectangle = Rectangle.Empty;
+            freeFormPoints.Clear();
+            copiedRegionBitmap = null;
+        }
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            NewDocument();
+        }
+        private void SaveDocument()
+        {
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|BMP Image|*.bmp|All Files|*.*";
+                saveDialog.Title = "Save Image";
+                saveDialog.DefaultExt = "png";
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // Create a bitmap that combines all visible layers
+                        Bitmap finalImage = new Bitmap(
+                            CurrentLayer.Bitmap.Width,
+                            CurrentLayer.Bitmap.Height,
+                            PixelFormat.Format32bppArgb
+                        );
+
+                        using (Graphics g = Graphics.FromImage(finalImage))
+                        {
+                            g.Clear(Color.White); // Set white background
+
+                            // Draw each visible layer from bottom to top
+                            foreach (Layer layer in layers)
+                            {
+                                if (layer.Visible)
+                                {
+                                    // Create color matrix that includes the layer's opacity
+                                    ColorMatrix matrix = new ColorMatrix();
+                                    matrix.Matrix33 = layer.Opacity; // Set opacity
+
+                                    ImageAttributes imageAttributes = new ImageAttributes();
+                                    imageAttributes.SetColorMatrix(matrix);
+
+                                    // Draw the layer with its opacity
+                                    g.DrawImage(layer.Bitmap,
+                                        new Rectangle(0, 0, layer.Bitmap.Width, layer.Bitmap.Height),
+                                        0, 0, layer.Bitmap.Width, layer.Bitmap.Height,
+                                        GraphicsUnit.Pixel,
+                                        imageAttributes);
+                                }
+                            }
+                        }
+
+                        // Determine file format based on extension
+                        ImageFormat format = ImageFormat.Png; // Default to PNG
+                        string ext = Path.GetExtension(saveDialog.FileName).ToLower();
+                        switch (ext)
+                        {
+                            case ".jpg":
+                            case ".jpeg":
+                                format = ImageFormat.Jpeg;
+                                break;
+                            case ".bmp":
+                                format = ImageFormat.Bmp;
+                                break;
+                        }
+
+                        // Save the final image
+                        finalImage.Save(saveDialog.FileName, format);
+
+                        // Update the current file path
+                        currentFilePath = saveDialog.FileName;
+
+                        // Clear the undo stack since we've saved
+                        hasUnsavedChanges = false;
+
+                        // Update the form title to show the file name
+                        UpdateFormTitle();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            $"Error saving file: {ex.Message}",
+                            "Save Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+            }
+        }
+        private void UpdateFormTitle()
+        {
+            string fileName = string.IsNullOrEmpty(currentFilePath)
+                ? "Untitled"
+                : Path.GetFileName(currentFilePath);
+
+            this.Text = $"{fileName} - Paint Application";
+            if (hasUnsavedChanges)
+                this.Text += "*";
+        }
+        private void MarkAsUnsaved()
+        {
+            if (!hasUnsavedChanges)
+            {
+                hasUnsavedChanges = true;
+                UpdateFormTitle();
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentFilePath))
+            {
+                SaveDocument(); // If no current file, show Save As dialog
+            }
+            else
+            {
+                try
+                {
+                    // Save directly to current file
+                    Bitmap finalImage = new Bitmap(
+                        CurrentLayer.Bitmap.Width,
+                        CurrentLayer.Bitmap.Height,
+                        PixelFormat.Format32bppArgb
+                    );
+
+                    using (Graphics g = Graphics.FromImage(finalImage))
+                    {
+                        g.Clear(Color.White);
+                        foreach (Layer layer in layers)
+                        {
+                            if (layer.Visible)
+                            {
+                                ColorMatrix matrix = new ColorMatrix();
+                                matrix.Matrix33 = layer.Opacity;
+                                ImageAttributes imageAttributes = new ImageAttributes();
+                                imageAttributes.SetColorMatrix(matrix);
+
+                                g.DrawImage(layer.Bitmap,
+                                    new Rectangle(0, 0, layer.Bitmap.Width, layer.Bitmap.Height),
+                                    0, 0, layer.Bitmap.Width, layer.Bitmap.Height,
+                                    GraphicsUnit.Pixel,
+                                    imageAttributes);
+                            }
+                        }
+                    }
+
+                    // Determine format from existing file extension
+                    ImageFormat format = ImageFormat.Png;
+                    string ext = Path.GetExtension(currentFilePath).ToLower();
+                    switch (ext)
+                    {
+                        case ".jpg":
+                        case ".jpeg":
+                            format = ImageFormat.Jpeg;
+                            break;
+                        case ".bmp":
+                            format = ImageFormat.Bmp;
+                            break;
+                    }
+
+                    finalImage.Save(currentFilePath, format);
+                    hasUnsavedChanges = false;
+                    UpdateFormTitle();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Error saving file: {ex.Message}",
+                        "Save Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
             }
         }
 

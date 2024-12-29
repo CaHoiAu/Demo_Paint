@@ -90,6 +90,12 @@
     <Compile Include="Form3.Designer.cs">
       <DependentUpon>Form3.cs</DependentUpon>
     </Compile>
+    <Compile Include="NewDocumentDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NewDocumentDialog.Designer.cs">
+      <DependentUpon>NewDocumentDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Control\ColorBox2D.resx">
@@ -109,6 +115,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form3.resx">
       <DependentUpon>Form3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewDocumentDialog.resx">
+      <DependentUpon>NewDocumentDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -363,6 +372,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\moveup1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\curve1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

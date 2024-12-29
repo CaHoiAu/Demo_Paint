@@ -89,7 +89,7 @@ namespace Demo_Paint
             this.btnSelection = new System.Windows.Forms.Button();
             this.btn4PointStar = new System.Windows.Forms.Button();
             this.btnHeart = new System.Windows.Forms.Button();
-            this.btnHexagon = new System.Windows.Forms.Button();
+            this.btnCurve = new System.Windows.Forms.Button();
             this.btnPentagon = new System.Windows.Forms.Button();
             this.btnDiamond = new System.Windows.Forms.Button();
             this.btnMagnifier = new System.Windows.Forms.Button();
@@ -98,7 +98,7 @@ namespace Demo_Paint
             this.btnEyedropper = new System.Windows.Forms.Button();
             this.btnEllipse = new System.Windows.Forms.Button();
             this.btnBucket = new System.Windows.Forms.Button();
-            this.btn = new System.Windows.Forms.Button();
+            this.btnRectangle = new System.Windows.Forms.Button();
             this.btnPen = new System.Windows.Forms.Button();
             this.btnEraser = new System.Windows.Forms.Button();
             this.btnRedo = new System.Windows.Forms.Button();
@@ -176,6 +176,7 @@ namespace Demo_Paint
             this.btnLine.Text = "\\";
             this.tooltip.SetToolTip(this.btnLine, "Line");
             this.btnLine.UseVisualStyleBackColor = false;
+            this.btnLine.Click += new System.EventHandler(this.btnLine_Click);
             // 
             // btnText
             // 
@@ -218,7 +219,7 @@ namespace Demo_Paint
             this.panel1.Controls.Add(this.btn4PointStar);
             this.panel1.Controls.Add(this.btnHeart);
             this.panel1.Controls.Add(this.label2);
-            this.panel1.Controls.Add(this.btnHexagon);
+            this.panel1.Controls.Add(this.btnCurve);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.btnPentagon);
             this.panel1.Controls.Add(this.panel3);
@@ -230,7 +231,7 @@ namespace Demo_Paint
             this.panel1.Controls.Add(this.btnEyedropper);
             this.panel1.Controls.Add(this.btnEllipse);
             this.panel1.Controls.Add(this.btnBucket);
-            this.panel1.Controls.Add(this.btn);
+            this.panel1.Controls.Add(this.btnRectangle);
             this.panel1.Controls.Add(this.btnLine);
             this.panel1.Controls.Add(this.btnPen);
             this.panel1.Controls.Add(this.btnEraser);
@@ -532,7 +533,7 @@ namespace Demo_Paint
             this.moveDownToolStripMenuItem,
             this.deleteLayerToolStripMenuItem});
             this.layerContextMenuStrip.Name = "layerContextMenuStrip";
-            this.layerContextMenuStrip.Size = new System.Drawing.Size(181, 92);
+            this.layerContextMenuStrip.Size = new System.Drawing.Size(139, 70);
             this.layerContextMenuStrip.Text = "Delete Layer";
             // 
             // btnFitWindow
@@ -749,6 +750,7 @@ namespace Demo_Paint
             this.btn4PointStar.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btn4PointStar, "Four-Point Star");
             this.btn4PointStar.UseVisualStyleBackColor = false;
+            this.btn4PointStar.Click += new System.EventHandler(this.btn4PointStar_Click);
             // 
             // btnHeart
             // 
@@ -763,20 +765,22 @@ namespace Demo_Paint
             this.btnHeart.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnHeart, "Heart");
             this.btnHeart.UseVisualStyleBackColor = false;
+            this.btnHeart.Click += new System.EventHandler(this.btnHeart_Click);
             // 
-            // btnHexagon
+            // btnCurve
             // 
-            this.btnHexagon.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.btnHexagon.FlatAppearance.BorderSize = 0;
-            this.btnHexagon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnHexagon.Image = global::Demo_Paint.Properties.Resources.hexagon1;
-            this.btnHexagon.Location = new System.Drawing.Point(358, 35);
-            this.btnHexagon.Name = "btnHexagon";
-            this.btnHexagon.Size = new System.Drawing.Size(25, 25);
-            this.btnHexagon.TabIndex = 25;
-            this.btnHexagon.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.tooltip.SetToolTip(this.btnHexagon, "Hexagon");
-            this.btnHexagon.UseVisualStyleBackColor = false;
+            this.btnCurve.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.btnCurve.FlatAppearance.BorderSize = 0;
+            this.btnCurve.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnCurve.Image = global::Demo_Paint.Properties.Resources.curve1;
+            this.btnCurve.Location = new System.Drawing.Point(358, 35);
+            this.btnCurve.Name = "btnCurve";
+            this.btnCurve.Size = new System.Drawing.Size(25, 25);
+            this.btnCurve.TabIndex = 25;
+            this.btnCurve.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.tooltip.SetToolTip(this.btnCurve, "Hexagon");
+            this.btnCurve.UseVisualStyleBackColor = false;
+            this.btnCurve.Click += new System.EventHandler(this.btnCurve_Click);
             // 
             // btnPentagon
             // 
@@ -791,6 +795,7 @@ namespace Demo_Paint
             this.btnPentagon.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnPentagon, "Pentagon");
             this.btnPentagon.UseVisualStyleBackColor = false;
+            this.btnPentagon.Click += new System.EventHandler(this.btnPentagon_Click);
             // 
             // btnDiamond
             // 
@@ -805,6 +810,7 @@ namespace Demo_Paint
             this.btnDiamond.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnDiamond, "Diamond");
             this.btnDiamond.UseVisualStyleBackColor = false;
+            this.btnDiamond.Click += new System.EventHandler(this.btnDiamond_Click);
             // 
             // btnMagnifier
             // 
@@ -833,6 +839,7 @@ namespace Demo_Paint
             this.btnTriangle.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnTriangle, "Triangle");
             this.btnTriangle.UseVisualStyleBackColor = false;
+            this.btnTriangle.Click += new System.EventHandler(this.btnTriangle_Click);
             // 
             // btnStar
             // 
@@ -847,6 +854,7 @@ namespace Demo_Paint
             this.btnStar.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.tooltip.SetToolTip(this.btnStar, "Star");
             this.btnStar.UseVisualStyleBackColor = false;
+            this.btnStar.Click += new System.EventHandler(this.btnStar_Click);
             // 
             // btnEyedropper
             // 
@@ -873,6 +881,7 @@ namespace Demo_Paint
             this.btnEllipse.TabIndex = 20;
             this.btnEllipse.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnEllipse.UseVisualStyleBackColor = false;
+            this.btnEllipse.Click += new System.EventHandler(this.btnEllipse_Click);
             // 
             // btnBucket
             // 
@@ -887,19 +896,20 @@ namespace Demo_Paint
             this.btnBucket.UseVisualStyleBackColor = true;
             this.btnBucket.Click += new System.EventHandler(this.btnBucket_Click);
             // 
-            // btn
+            // btnRectangle
             // 
-            this.btn.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.btn.FlatAppearance.BorderSize = 0;
-            this.btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn.Image = global::Demo_Paint.Properties.Resources.rec213;
-            this.btn.Location = new System.Drawing.Point(328, 9);
-            this.btn.Name = "btn";
-            this.btn.Size = new System.Drawing.Size(24, 24);
-            this.btn.TabIndex = 6;
-            this.btn.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.tooltip.SetToolTip(this.btn, "Rectangle");
-            this.btn.UseVisualStyleBackColor = false;
+            this.btnRectangle.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.btnRectangle.FlatAppearance.BorderSize = 0;
+            this.btnRectangle.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRectangle.Image = global::Demo_Paint.Properties.Resources.rec213;
+            this.btnRectangle.Location = new System.Drawing.Point(328, 9);
+            this.btnRectangle.Name = "btnRectangle";
+            this.btnRectangle.Size = new System.Drawing.Size(24, 24);
+            this.btnRectangle.TabIndex = 6;
+            this.btnRectangle.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.tooltip.SetToolTip(this.btnRectangle, "Rectangle");
+            this.btnRectangle.UseVisualStyleBackColor = false;
+            this.btnRectangle.Click += new System.EventHandler(this.btnRect_Click);
             // 
             // btnPen
             // 
@@ -961,22 +971,24 @@ namespace Demo_Paint
             // 
             this.newToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.new_file1;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.newToolStripMenuItem.Text = "New";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.open1;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.openToolStripMenuItem.Text = "Open";
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.PikPng_com_save_icon_png_1408395;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             this.saveToolStripMenuItem.Text = "Save";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // cutToolStripMenuItem
             // 
@@ -1023,7 +1035,7 @@ namespace Demo_Paint
             // 
             this.moveUpToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.moveup1;
             this.moveUpToolStripMenuItem.Name = "moveUpToolStripMenuItem";
-            this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.moveUpToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.moveUpToolStripMenuItem.Text = "Move Up";
             this.moveUpToolStripMenuItem.Click += new System.EventHandler(this.moveUpToolStripMenuItem_Click);
             // 
@@ -1031,7 +1043,7 @@ namespace Demo_Paint
             // 
             this.moveDownToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.movedown1;
             this.moveDownToolStripMenuItem.Name = "moveDownToolStripMenuItem";
-            this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.moveDownToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.moveDownToolStripMenuItem.Text = "Move Down";
             this.moveDownToolStripMenuItem.Click += new System.EventHandler(this.moveDownToolStripMenuItem_Click);
             // 
@@ -1039,7 +1051,7 @@ namespace Demo_Paint
             // 
             this.deleteLayerToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.bin1;
             this.deleteLayerToolStripMenuItem.Name = "deleteLayerToolStripMenuItem";
-            this.deleteLayerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteLayerToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.deleteLayerToolStripMenuItem.Text = "Delete Layer";
             this.deleteLayerToolStripMenuItem.Click += new System.EventHandler(this.deleteLayerToolStripMenuItem_Click);
             // 
@@ -1145,13 +1157,13 @@ namespace Demo_Paint
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btn4PointStar;
         private System.Windows.Forms.Button btnHeart;
-        private System.Windows.Forms.Button btnHexagon;
+        private System.Windows.Forms.Button btnCurve;
         private System.Windows.Forms.Button btnPentagon;
         private System.Windows.Forms.Button btnDiamond;
         private System.Windows.Forms.Button btnTriangle;
         private System.Windows.Forms.Button btnStar;
         private System.Windows.Forms.Button btnEllipse;
-        private System.Windows.Forms.Button btn;
+        private System.Windows.Forms.Button btnRectangle;
         private System.Windows.Forms.Button btnLine;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Label label3;
