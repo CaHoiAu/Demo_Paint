@@ -221,12 +221,14 @@ namespace Demo_Paint
         //Các biến với nét vẽ
         private Dictionary<string, TextureBrush> textureBrushes;
         private string currentTextureBrushKey;
-
+        private int lastBrushWidth = -1;
+        private int lastBrushHeight = -1;
+        private int lastAngle = -1;
         private enum BrushType
         {
             Solid,
             Crayon,
-            Watercolor,
+            Marker,
             Calligraphic
         }
         private BrushType currentBrushType = BrushType.Solid;
@@ -416,6 +418,8 @@ namespace Demo_Paint
                 g.CompositingMode = CompositingMode.SourceOver;
             }
         }
+        private Point lastPoint;
+        private bool isFirstPoint = true;
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
             paint = true;
@@ -535,6 +539,182 @@ namespace Demo_Paint
             freeFormRegion = null;
             isSelecting = false;
             canvas.Invalidate();
+        }
+        private readonly Random random = new Random();
+        private TextureBrush crayonBrush = null;
+        private TextureBrush markerBrush = null;
+        private TextureBrush calliBrush = null;
+        private int lastBrushSize = -1;
+        private Color lastBrushColor;
+        private void InitializeMarkerBrush(int size, Color color)
+        {
+            // Recreate brush if size or color changed
+            if (markerBrush != null && lastBrushSize == size && lastBrushColor == color)
+                return;
+
+            // Dispose old brush if it exists
+            if (markerBrush != null)
+            {
+                markerBrush.Dispose();
+                markerBrush = null;
+            }
+            using (Bitmap markerTexture = new Bitmap(Properties.Resources.marker1)) // Add your marker texture to resources
+            {
+                // Create a colored version of the texture
+                using (Bitmap coloredTexture = new Bitmap(markerTexture.Width, markerTexture.Height))
+                {
+                    using (Graphics g = Graphics.FromImage(coloredTexture))
+                    {
+                        // Create color matrix for tinting the texture
+                        ColorMatrix colorMatrix = new ColorMatrix(new float[][]
+                        {
+                        new float[] {color.R/255f, 0, 0, 0, 0},
+                        new float[] {0, color.G/255f, 0, 0, 0},
+                        new float[] {0, 0, color.B/255f, 0, 0},
+                        new float[] {0, 0, 0, 0.5f, 0}, // Adjust alpha here
+                        new float[] {0, 0, 0, 0, 1}
+                        });
+
+                        using (ImageAttributes imgAttributes = new ImageAttributes())
+                        {
+                            imgAttributes.SetColorMatrix(colorMatrix);
+                            g.DrawImage(markerTexture,
+                                new Rectangle(0, 0, markerTexture.Width, markerTexture.Height),
+                                0, 0, markerTexture.Width, markerTexture.Height,
+                                GraphicsUnit.Pixel,
+                                imgAttributes);
+                        }
+                    }
+                    markerBrush = new TextureBrush(coloredTexture);
+                }
+            }
+
+            lastBrushSize = size;
+            lastBrushColor = color;
+        }
+
+        private Bitmap CreateMarkerBrush(int size, Color strokeColor)
+        {
+            Bitmap brushTexture = new Bitmap(size, size);
+
+            using (Graphics g = Graphics.FromImage(brushTexture))
+            {
+                g.Clear(Color.Transparent);
+
+                // Create semi-transparent color for marker effect
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(50, strokeColor)))
+                {
+                    g.FillEllipse(brush, 0, 0, size, size);
+                }
+            }
+
+            return brushTexture;
+        }
+        private Bitmap CreateCalligraphyBrush(int width, int height, int angle, Color strokeColor)
+        {
+            Bitmap brushTexture = new Bitmap(width, height);
+
+            using (Graphics g = Graphics.FromImage(brushTexture))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+                using (Brush brush = new SolidBrush(strokeColor))
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            float centerX = width / 2f;
+                            float centerY = height / 2f;
+                            float offsetX = x - centerX;
+                            float offsetY = y - centerY;
+
+                            double radians = angle * Math.PI / 180.0;
+                            float rotatedX = (float)(offsetX * Math.Cos(radians) - offsetY * Math.Sin(radians)) + centerX;
+                            float rotatedY = (float)(offsetX * Math.Sin(radians) + offsetY * Math.Cos(radians)) + centerY;
+
+                            if (rotatedX >= width * 0.2 && rotatedX < width * 0.8 && rotatedY >= height / 3.5 && rotatedY < 2.5 * height / 3.5)
+                            {
+                                brushTexture.SetPixel(x, y, strokeColor);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return brushTexture;
+        }
+        private void InitializeCalligraphyBrush(int width, int height, int angle, Color color)
+        {
+            // Recreate brush if parameters changed
+            if (calliBrush != null &&
+                lastBrushWidth == width &&
+                lastBrushHeight == height &&
+                lastAngle == angle &&
+                lastBrushColor == color)
+                return;
+
+            // Dispose old brush if it exists
+            if (calliBrush != null)
+            {
+                calliBrush.Dispose();
+                calliBrush = null;
+            }
+
+            // Create the calligraphy texture
+            using (Bitmap brushTexture = CreateCalligraphyBrush(width, height, angle, color))
+            {
+                calliBrush = new TextureBrush(brushTexture);
+            }
+
+            lastBrushWidth = width;
+            lastBrushHeight = height;
+            lastAngle = angle;
+            lastBrushColor = color;
+        }
+        private Bitmap CreateCrayonBrush(int size, Color strokeColor)
+        {
+            Bitmap brushTexture = new Bitmap(size, size);
+
+            using (Graphics g = Graphics.FromImage(brushTexture))
+            {
+                g.Clear(Color.Transparent);
+                for (int x = 0; x < size; x++)
+                {
+                    for (int y = 0; y < size; y++)
+                    {
+                        if (Math.Pow(x - size / 2, 2) + Math.Pow(y - size / 2, 2) <= Math.Pow(size / 2, 2) && random.Next(0, 100) > 70)
+                        {
+                            int alpha = random.Next(100, 180);
+                            brushTexture.SetPixel(x, y, Color.FromArgb(alpha, strokeColor.R, strokeColor.G, strokeColor.B));
+                        }
+                    }
+                }
+            }
+
+            return brushTexture;
+        }
+        private void InitializeCrayonBrush(int size, Color color)
+        {
+            if (crayonBrush != null && lastBrushSize == size && lastBrushColor == color)
+                return;
+
+            // Dispose old brush if it exists
+            if (crayonBrush != null)
+            {
+                crayonBrush.Dispose();
+                crayonBrush = null;
+            }
+            using (Bitmap brushTexture = CreateCrayonBrush(size * 2, color))
+            {
+                crayonBrush = new TextureBrush(brushTexture);
+            }
+
+            lastBrushSize = size;
+            lastBrushColor = color;
         }
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -672,20 +852,131 @@ namespace Demo_Paint
                                 break;
 
                             case BrushType.Crayon:
-                                using (Bitmap textureBitmap = new Bitmap(Properties.Resources.crayon))
-                                using (Bitmap scaledTexture = new Bitmap(textureBitmap, new Size(brushsize * 2, brushsize * 2)))
-                                using (TextureBrush textureBrush = new TextureBrush(scaledTexture))
-                                using (GraphicsPath path = new GraphicsPath())
+                                InitializeCrayonBrush(brushsize, pic_ColorStroke.BackColor);
+
+                                // Calculate intermediate points for smoother line
+                                float distance = (float)Math.Sqrt(
+                                    Math.Pow(imagePoint2.X - imagePoint1.X, 2) +
+                                    Math.Pow(imagePoint2.Y - imagePoint1.Y, 2));
+
+                                if (distance > 0)
                                 {
-                                    path.AddLine(imagePoint1, imagePoint2);
-                                    using (Pen texturePen = new Pen(textureBrush, brushsize)
+                                    float stepSize = Math.Max(1, brushsize / 4f);
+                                    int steps = (int)(distance / stepSize);
+                                    steps = Math.Max(1, Math.Min(steps, 100)); // Limit maximum steps
+
+                                    for (int i = 0; i < steps; i++)
+                                    {
+                                        float t = i / (float)steps;
+                                        int x = (int)(imagePoint1.X + (imagePoint2.X - imagePoint1.X) * t);
+                                        int y = (int)(imagePoint1.Y + (imagePoint2.Y - imagePoint1.Y) * t);
+
+                                        // Create matrix for opacity
+                                        using (GraphicsPath path = new GraphicsPath())
+                                        {
+                                            path.AddEllipse(x - brushsize / 2, y - brushsize / 2, brushsize, brushsize);
+
+                                            // Rotate the brush matrix for variety
+                                            Matrix rotationMatrix = new Matrix();
+                                            rotationMatrix.RotateAt(random.Next(360), new PointF(x, y));
+                                            crayonBrush.Transform = rotationMatrix;
+
+                                            // Draw with semi-transparency
+                                            using (SolidBrush alphaBrush = new SolidBrush(Color.FromArgb(76, Color.White)))
+                                            {
+                                                currentG.FillPath(crayonBrush, path);
+                                                currentG.FillPath(alphaBrush, path); // Add some opacity blend
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                            case BrushType.Marker:
+                                currentG.SmoothingMode = SmoothingMode.AntiAlias;
+                                currentG.CompositingMode = CompositingMode.SourceOver;
+
+                                // Create a semi-transparent color for the marker
+                                Color markerColor = Color.FromArgb(25, pic_ColorStroke.BackColor); // Lower alpha for more layering
+
+                                // Calculate distance between points
+                                float dx1 = imagePoint2.X - imagePoint1.X;
+                                float dy1 = imagePoint2.Y - imagePoint1.Y;
+                                float d = (float)Math.Sqrt(dx1 * dx1 + dy1 * dy1);
+
+                                if (d > 0)
+                                {
+                                    // Calculate number of interpolation steps based on distance
+                                    float stepSize = Math.Max(1, brushsize / 4f);
+                                    int steps = (int)(d / stepSize);
+                                    steps = Math.Max(1, Math.Min(steps, 100)); // Limit maximum steps
+
+                                    // Create arrays to store interpolated points
+                                    PointF[] points = new PointF[steps + 1];
+                                    for (int i = 0; i <= steps; i++)
+                                    {
+                                        float t = i / (float)steps;
+                                        float x = imagePoint1.X + (dx1 * t);
+                                        float y = imagePoint1.Y + (dy1 * t);
+                                        points[i] = new PointF(x, y);
+                                    }
+
+                                    // Draw lines between interpolated points
+                                    using (Pen mainPen = new Pen(markerColor, brushsize)
                                     {
                                         StartCap = LineCap.Round,
                                         EndCap = LineCap.Round,
                                         LineJoin = LineJoin.Round
                                     })
                                     {
-                                        currentG.DrawPath(texturePen, path);
+                                        // Draw multiple parallel lines for each segment
+                                        float offset = brushsize * 0.1f;
+                                        for (int j = -2; j <= 2; j++)
+                                        {
+                                            float xOffset = j * offset;
+                                            for (int i = 0; i < points.Length - 1; i++)
+                                            {
+                                                PointF p1 = new PointF(points[i].X + xOffset, points[i].Y);
+                                                PointF p2 = new PointF(points[i + 1].X + xOffset, points[i + 1].Y);
+                                                currentG.DrawLine(mainPen, p1, p2);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                px = e.Location;
+                                break;
+                            case BrushType.Calligraphic:
+                                currentG.SmoothingMode = SmoothingMode.AntiAlias;
+                                currentG.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                                currentG.CompositingQuality = CompositingQuality.HighQuality;
+
+                                // Calculate angle for the stroke
+                                float dx = imagePoint2.X - imagePoint1.X;
+                                float dy = imagePoint2.Y - imagePoint1.Y;
+                                float d1 = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                                if (d1 > 0)
+                                {
+                                    float angle = (float)(Math.Atan2(dy, dx) * 180.0 / Math.PI);
+
+                                    // Create a custom pen with angle-dependent width
+                                    using (GraphicsPath path = new GraphicsPath())
+                                    {
+                                        // Calculate pen width based on angle
+                                        float baseWidth = brushsize;
+                                        float widthMultiplier = Math.Abs((float)Math.Sin(angle * Math.PI / 180.0));
+                                        float penWidth = baseWidth * (1 + 2 * widthMultiplier); // Varies between baseWidth and 3*baseWidth
+
+                                        using (Pen pen = new Pen(pic_ColorStroke.BackColor, penWidth)
+                                        {
+                                            StartCap = LineCap.Round,
+                                            EndCap = LineCap.Round,
+                                            LineJoin = LineJoin.Round
+                                        })
+                                        {
+                                            // Draw the line with varying width
+                                            currentG.DrawLine(pen, imagePoint1, imagePoint2);
+                                        }
                                     }
                                 }
                                 break;
@@ -1184,7 +1475,6 @@ namespace Demo_Paint
             currentIndex = index = 1;
             if (sender is Button btn && btn.Image != null)
             {
-
                 // Lấy biểu tượng từ hình ảnh của Button
                 Bitmap bitmap = new Bitmap(Properties.Resources.pencil_drawing2);
 
@@ -2089,6 +2379,21 @@ namespace Demo_Paint
             if (e.Control && e.KeyCode == Keys.Y)
             {
                 Redo();
+                e.Handled = true;
+            }
+            if (e.Control && e.KeyCode == Keys.S)
+            {
+                saveToolStripMenuItem_Click(null, EventArgs.Empty);
+                e.Handled = true;
+            }
+            if (e.Control && e.KeyCode == Keys.O)
+            {
+                openToolStripMenuItem_Click(null, EventArgs.Empty);
+                e.Handled = true;
+            }
+            if (e.Control && e.KeyCode == Keys.N)
+            {
+                newToolStripMenuItem_Click(null, EventArgs.Empty);
                 e.Handled = true;
             }
             if (e.Control && e.KeyCode == Keys.C)
@@ -3608,8 +3913,25 @@ namespace Demo_Paint
         {
             SaveDocument();
         }
+        private void DisposeCrayonBrush()
+        {
+            if (crayonBrush != null)
+            {
+                crayonBrush.Dispose();
+                crayonBrush = null;
+            }
+        }
+        private void ChangeTool(int newIndex)
+        {
+            if (index == 1 && currentBrushType == BrushType.Crayon)
+            {
+                DisposeCrayonBrush();
+            }
+            index = newIndex;
+        }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            DisposeCrayonBrush();
             base.OnFormClosing(e);
 
             // Check if there are unsaved changes
@@ -3837,6 +4159,18 @@ namespace Demo_Paint
         private void brushToolStripMenuItem_Click(object sender, EventArgs e)
         {
             currentBrushType = BrushType.Solid;
+            index = 10;
+        }
+
+        private void markerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentBrushType = BrushType.Marker;
+            index = 10;
+        }
+
+        private void caligraphToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentBrushType = BrushType.Calligraphic;
             index = 10;
         }
 
