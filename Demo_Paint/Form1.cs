@@ -16,7 +16,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Demo_Paint.Form3;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Demo_Paint
 {
@@ -65,6 +64,7 @@ namespace Demo_Paint
         private bool isStart = false;
         private Shape currentShape;
         private ShapeType currentShapeType = ShapeType.Line; // Default shape type
+
 
         // Các biến cho layers
         public class Layer
@@ -217,6 +217,19 @@ namespace Demo_Paint
             public Color Color { get; set; }
             public string Alignment { get; set; }
         }
+
+        //Các biến với nét vẽ
+        private Dictionary<string, TextureBrush> textureBrushes;
+        private string currentTextureBrushKey;
+
+        private enum BrushType
+        {
+            Solid,
+            Crayon,
+            Watercolor,
+            Calligraphic
+        }
+        private BrushType currentBrushType = BrushType.Solid;
         //Các biến cho Selection
         private enum SelectionMode { Rectangle, FreeForm }
         private SelectionMode currentMode = SelectionMode.Rectangle; // Mặc định chọn hình chữ nhật
@@ -284,6 +297,20 @@ namespace Demo_Paint
 
             freeFormPoints = new List<Point>(); // Khởi tạo danh sách
         }
+        private Bitmap CreatePenTexture()
+        {
+            Bitmap penTexture = new Bitmap(10, 10);
+            using (Graphics g = Graphics.FromImage(penTexture))
+            {
+                g.Clear(Color.Transparent);
+                using (Pen pen = new Pen(Color.Black, 2))
+                {
+                    g.DrawLine(pen, 0, 5, 10, 5);
+                }
+            }
+            return penTexture;
+        }
+
         private void InitializeLayers()
         {
             if (layers == null)
@@ -519,7 +546,7 @@ namespace Demo_Paint
                 {
                     Point imagePoint = GetImagePoint(e.Location);
                     Shape lastShape = shapes[shapes.Count - 1];
-
+                    bool isShiftPressed = (ModifierKeys & Keys.Shift) == Keys.Shift;
                     if (currentShapeType == ShapeType.Curve)
                     {
                         // Handle curve drawing
@@ -541,8 +568,74 @@ namespace Demo_Paint
                     }
                     else
                     {
-                        // Handle other shapes
-                        lastShape.EndPoint = imagePoint;
+                        if (isShiftPressed)
+                        {
+                            // Get the start point
+                            Point startPoint = lastShape.StartPoint;
+
+                            // Calculate the differences
+                            int dx = Math.Abs(imagePoint.X - startPoint.X);
+                            int dy = Math.Abs(imagePoint.Y - startPoint.Y);
+
+                            // Use the larger of the two differences for equal sides
+                            int size = Math.Max(dx, dy);
+
+                            // Calculate new endpoint maintaining the direction
+                            int newX = startPoint.X + (imagePoint.X > startPoint.X ? size : -size);
+                            int newY = startPoint.Y + (imagePoint.Y > startPoint.Y ? size : -size);
+
+                            // Special handling for different shape types
+                            switch (currentShapeType)
+                            {
+                                case ShapeType.Rectangle:
+                                case ShapeType.Ellipse:
+                                    // Make it a square/circle
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Line:
+                                    // Snap to 45-degree angles
+                                    int angle = (int)Math.Round(Math.Atan2(imagePoint.Y - startPoint.Y,
+                                                                          imagePoint.X - startPoint.X)
+                                                              * 180 / Math.PI / 45) * 45;
+                                    double radian = angle * Math.PI / 180;
+                                    int length = (int)Math.Sqrt(dx * dx + dy * dy);
+                                    newX = startPoint.X + (int)(length * Math.Cos(radian));
+                                    newY = startPoint.Y + (int)(length * Math.Sin(radian));
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Triangle:
+                                    // Make it an equilateral triangle
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Diamond:
+                                    // Make it a perfect diamond
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Star:
+                                case ShapeType.FourPointStar:
+                                    // Make it a symmetrical star
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Pentagon:
+                                    // Make it a regular pentagon
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                default:
+                                    lastShape.EndPoint = imagePoint;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // Normal shape drawing without constraints
+                            lastShape.EndPoint = imagePoint;
+                        }
                     }
                     canvas.Invalidate();
                 }
@@ -560,18 +653,44 @@ namespace Demo_Paint
                     // Skip selection logic if drawing
                     if (index == 1) // Pen tool
                     {
-                        Pen p = new Pen(pic_ColorStroke.BackColor, brushsize)
-                        {
-                            StartCap = LineCap.Round,
-                            EndCap = LineCap.Round,
-                            LineJoin = LineJoin.Round
-                        };
-
+                        currentG.SmoothingMode = SmoothingMode.AntiAlias;
                         Point imagePoint1 = GetImagePoint(px);
                         Point imagePoint2 = GetImagePoint(e.Location);
-                        currentG.DrawLine(p, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
 
-                        // Store current position for next line segment
+                        switch (currentBrushType) // Add this enum to your class
+                        {
+                            case BrushType.Solid: // Normal pen
+                                using (Pen p = new Pen(pic_ColorStroke.BackColor, brushsize)
+                                {
+                                    StartCap = LineCap.Round,
+                                    EndCap = LineCap.Round,
+                                    LineJoin = LineJoin.Round
+                                })
+                                {
+                                    currentG.DrawLine(p, imagePoint1.X, imagePoint1.Y, imagePoint2.X, imagePoint2.Y);
+                                }
+                                break;
+
+                            case BrushType.Crayon:
+                                using (Bitmap textureBitmap = new Bitmap(Properties.Resources.crayon))
+                                using (Bitmap scaledTexture = new Bitmap(textureBitmap, new Size(brushsize * 2, brushsize * 2)))
+                                using (TextureBrush textureBrush = new TextureBrush(scaledTexture))
+                                using (GraphicsPath path = new GraphicsPath())
+                                {
+                                    path.AddLine(imagePoint1, imagePoint2);
+                                    using (Pen texturePen = new Pen(textureBrush, brushsize)
+                                    {
+                                        StartCap = LineCap.Round,
+                                        EndCap = LineCap.Round,
+                                        LineJoin = LineJoin.Round
+                                    })
+                                    {
+                                        currentG.DrawPath(texturePen, path);
+                                    }
+                                }
+                                break;
+                        }
+
                         px = e.Location;
                         py = e.Location;
                     }
@@ -923,9 +1042,55 @@ namespace Demo_Paint
                 }
                 else
                 {
-                    // Handle other shapes
+                    // Handle other shapes with Shift key support
                     if (isStart)
                     {
+                        // Check if Shift is pressed when mouse is released
+                        bool isShiftPressed = (ModifierKeys & Keys.Shift) == Keys.Shift;
+
+                        if (isShiftPressed && shapes.Count > 0)
+                        {
+                            Shape lastShape = shapes[shapes.Count - 1];
+                            Point startPoint = lastShape.StartPoint;
+                            Point endPoint = GetImagePoint(e.Location);
+
+                            // Calculate the differences
+                            int dx = Math.Abs(endPoint.X - startPoint.X);
+                            int dy = Math.Abs(endPoint.Y - startPoint.Y);
+
+                            // Use the larger of the two differences for equal sides
+                            int size = Math.Max(dx, dy);
+
+                            // Calculate new endpoint maintaining the direction
+                            int newX = startPoint.X + (endPoint.X > startPoint.X ? size : -size);
+                            int newY = startPoint.Y + (endPoint.Y > startPoint.Y ? size : -size);
+
+                            // Apply constraints based on shape type
+                            switch (currentShapeType)
+                            {
+                                case ShapeType.Rectangle:
+                                case ShapeType.Ellipse:
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                case ShapeType.Line:
+                                    // Snap to 45-degree angles
+                                    int angle = (int)Math.Round(Math.Atan2(endPoint.Y - startPoint.Y,
+                                                                          endPoint.X - startPoint.X)
+                                                              * 180 / Math.PI / 45) * 45;
+                                    double radian = angle * Math.PI / 180;
+                                    int length = (int)Math.Sqrt(dx * dx + dy * dy);
+                                    newX = startPoint.X + (int)(length * Math.Cos(radian));
+                                    newY = startPoint.Y + (int)(length * Math.Sin(radian));
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+
+                                default:
+                                    lastShape.EndPoint = new Point(newX, newY);
+                                    break;
+                            }
+                        }
+
                         SaveDrawingState();
                         if (shapes.Count > 0)
                         {
@@ -1650,6 +1815,7 @@ namespace Demo_Paint
             }
 
             canvas.Invalidate();
+            MarkAsUnsaved();
         }
 
         private void SaveSelectionState()
@@ -1680,6 +1846,7 @@ namespace Demo_Paint
                 LayerBeforeChange = layerCopy
             });
             selectionRedoStack.Clear();
+            MarkAsUnsaved();
         }
         private void SaveCurrentSelectionToRedo()
         {
@@ -3304,8 +3471,7 @@ namespace Demo_Paint
         }
         private bool HasUnsavedChanges()
         {
-            // Check if there are any changes in the undo stack
-            return undoStack.Count > 0;
+            return hasUnsavedChanges || undoStack.Count > 0;
         }
 
         private void ResetToolStates()
@@ -3335,6 +3501,13 @@ namespace Demo_Paint
         {
             using (SaveFileDialog saveDialog = new SaveFileDialog())
             {
+                // Set initial directory to the current file's directory if it exists
+                if (!string.IsNullOrEmpty(currentFilePath))
+                {
+                    saveDialog.InitialDirectory = Path.GetDirectoryName(currentFilePath);
+                    saveDialog.FileName = Path.GetFileName(currentFilePath);
+                }
+
                 saveDialog.Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|BMP Image|*.bmp|All Files|*.*";
                 saveDialog.Title = "Save Image";
                 saveDialog.DefaultExt = "png";
@@ -3344,63 +3517,59 @@ namespace Demo_Paint
                     try
                     {
                         // Create a bitmap that combines all visible layers
-                        Bitmap finalImage = new Bitmap(
-                            CurrentLayer.Bitmap.Width,
-                            CurrentLayer.Bitmap.Height,
-                            PixelFormat.Format32bppArgb
-                        );
-
-                        using (Graphics g = Graphics.FromImage(finalImage))
+                        using (Bitmap finalImage = new Bitmap(
+                            layers[0].Bitmap.Width,
+                            layers[0].Bitmap.Height,
+                            PixelFormat.Format32bppArgb))
                         {
-                            g.Clear(Color.White); // Set white background
-
-                            // Draw each visible layer from bottom to top
-                            foreach (Layer layer in layers)
+                            using (Graphics g = Graphics.FromImage(finalImage))
                             {
-                                if (layer.Visible)
+                                g.Clear(Color.White); // Set white background
+
+                                // Draw each visible layer from bottom to top
+                                foreach (Layer layer in layers)
                                 {
-                                    // Create color matrix that includes the layer's opacity
-                                    ColorMatrix matrix = new ColorMatrix();
-                                    matrix.Matrix33 = layer.Opacity; // Set opacity
+                                    if (layer.Visible)
+                                    {
+                                        // Create color matrix that includes the layer's opacity
+                                        ColorMatrix matrix = new ColorMatrix();
+                                        matrix.Matrix33 = layer.Opacity; // Set opacity
 
-                                    ImageAttributes imageAttributes = new ImageAttributes();
-                                    imageAttributes.SetColorMatrix(matrix);
+                                        ImageAttributes imageAttributes = new ImageAttributes();
+                                        imageAttributes.SetColorMatrix(matrix);
 
-                                    // Draw the layer with its opacity
-                                    g.DrawImage(layer.Bitmap,
-                                        new Rectangle(0, 0, layer.Bitmap.Width, layer.Bitmap.Height),
-                                        0, 0, layer.Bitmap.Width, layer.Bitmap.Height,
-                                        GraphicsUnit.Pixel,
-                                        imageAttributes);
+                                        // Draw the layer with its opacity
+                                        g.DrawImage(layer.Bitmap,
+                                            new Rectangle(0, 0, layer.Bitmap.Width, layer.Bitmap.Height),
+                                            0, 0, layer.Bitmap.Width, layer.Bitmap.Height,
+                                            GraphicsUnit.Pixel,
+                                            imageAttributes);
+                                    }
                                 }
                             }
+
+                            // Determine file format based on extension
+                            ImageFormat format = ImageFormat.Png; // Default to PNG
+                            string ext = Path.GetExtension(saveDialog.FileName).ToLower();
+                            switch (ext)
+                            {
+                                case ".jpg":
+                                case ".jpeg":
+                                    format = ImageFormat.Jpeg;
+                                    break;
+                                case ".bmp":
+                                    format = ImageFormat.Bmp;
+                                    break;
+                            }
+
+                            // Save the final image
+                            finalImage.Save(saveDialog.FileName, format);
+
+                            // Update the current file path
+                            currentFilePath = saveDialog.FileName;
+                            hasUnsavedChanges = false;
+                            UpdateFormTitle();
                         }
-
-                        // Determine file format based on extension
-                        ImageFormat format = ImageFormat.Png; // Default to PNG
-                        string ext = Path.GetExtension(saveDialog.FileName).ToLower();
-                        switch (ext)
-                        {
-                            case ".jpg":
-                            case ".jpeg":
-                                format = ImageFormat.Jpeg;
-                                break;
-                            case ".bmp":
-                                format = ImageFormat.Bmp;
-                                break;
-                        }
-
-                        // Save the final image
-                        finalImage.Save(saveDialog.FileName, format);
-
-                        // Update the current file path
-                        currentFilePath = saveDialog.FileName;
-
-                        // Clear the undo stack since we've saved
-                        hasUnsavedChanges = false;
-
-                        // Update the form title to show the file name
-                        UpdateFormTitle();
                     }
                     catch (Exception ex)
                     {
@@ -3414,6 +3583,8 @@ namespace Demo_Paint
                 }
             }
         }
+
+        // Make sure this method is properly updating the form title
         private void UpdateFormTitle()
         {
             string fileName = string.IsNullOrEmpty(currentFilePath)
@@ -3435,70 +3606,238 @@ namespace Demo_Paint
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(currentFilePath))
+            SaveDocument();
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+
+            // Check if there are unsaved changes
+            if (HasUnsavedChanges())
             {
-                SaveDocument(); // If no current file, show Save As dialog
+                DialogResult result = MessageBox.Show(
+                    "Do you want to save changes before closing?",
+                    "Save Changes",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        // Try to save and only close if save is successful
+                        try
+                        {
+                            SaveDocument();
+                            // If we get here, save was successful
+                            e.Cancel = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(
+                                $"Error saving file: {ex.Message}",
+                                "Save Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                            e.Cancel = true; // Don't close if save failed
+                        }
+                        break;
+
+                    case DialogResult.No:
+                        // User doesn't want to save, allow closing
+                        e.Cancel = false;
+                        break;
+
+                    case DialogResult.Cancel:
+                        // User cancelled the close operation
+                        e.Cancel = true;
+                        break;
+                }
             }
             else
             {
-                try
+                // No unsaved changes, allow closing
+                e.Cancel = false;
+            }
+
+            // If we're actually closing (e.Cancel is false), clean up resources
+            if (!e.Cancel)
+            {
+                // Dispose of bitmaps and other resources
+                if (bm != null)
                 {
-                    // Save directly to current file
-                    Bitmap finalImage = new Bitmap(
-                        CurrentLayer.Bitmap.Width,
-                        CurrentLayer.Bitmap.Height,
-                        PixelFormat.Format32bppArgb
-                    );
+                    bm.Dispose();
+                    bm = null;
+                }
+                if (g != null)
+                {
+                    g.Dispose();
+                    g = null;
+                }
 
-                    using (Graphics g = Graphics.FromImage(finalImage))
+                // Dispose of layer bitmaps
+                if (layers != null)
+                {
+                    foreach (var layer in layers)
                     {
-                        g.Clear(Color.White);
-                        foreach (Layer layer in layers)
+                        if (layer.Bitmap != null)
                         {
-                            if (layer.Visible)
-                            {
-                                ColorMatrix matrix = new ColorMatrix();
-                                matrix.Matrix33 = layer.Opacity;
-                                ImageAttributes imageAttributes = new ImageAttributes();
-                                imageAttributes.SetColorMatrix(matrix);
-
-                                g.DrawImage(layer.Bitmap,
-                                    new Rectangle(0, 0, layer.Bitmap.Width, layer.Bitmap.Height),
-                                    0, 0, layer.Bitmap.Width, layer.Bitmap.Height,
-                                    GraphicsUnit.Pixel,
-                                    imageAttributes);
-                            }
+                            layer.Bitmap.Dispose();
                         }
                     }
-
-                    // Determine format from existing file extension
-                    ImageFormat format = ImageFormat.Png;
-                    string ext = Path.GetExtension(currentFilePath).ToLower();
-                    switch (ext)
-                    {
-                        case ".jpg":
-                        case ".jpeg":
-                            format = ImageFormat.Jpeg;
-                            break;
-                        case ".bmp":
-                            format = ImageFormat.Bmp;
-                            break;
-                    }
-
-                    finalImage.Save(currentFilePath, format);
-                    hasUnsavedChanges = false;
-                    UpdateFormTitle();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        $"Error saving file: {ex.Message}",
-                        "Save Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
+                    layers.Clear();
                 }
             }
+        }
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+        }
+        private void OpenDocument()
+        {
+            // Check for unsaved changes first
+            if (HasUnsavedChanges())
+            {
+                DialogResult result = MessageBox.Show(
+                    "Do you want to save changes before opening a new file?",
+                    "Save Changes",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    SaveDocument();
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            using (OpenFileDialog openDialog = new OpenFileDialog())
+            {
+                openDialog.Filter = "All Picture Files|*.bmp;*.jpg;*.jpeg;*.png;*.gif|" +
+                                  "BMP Files (*.bmp)|*.bmp|" +
+                                  "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+                                  "PNG Files (*.png)|*.png|" +
+                                  "GIF Files (*.gif)|*.gif|" +
+                                  "All Files (*.*)|*.*";
+                openDialog.Title = "Open Image";
+
+                if (openDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // First load the image to get its dimensions
+                        using (var tempImage = System.Drawing.Image.FromFile(openDialog.FileName))
+                        {
+                            int width = tempImage.Width;
+                            int height = tempImage.Height;
+
+                            // Dispose old resources
+                            if (bm != null)
+                            {
+                                bm.Dispose();
+                                bm = null;
+                            }
+                            if (g != null)
+                            {
+                                g.Dispose();
+                                g = null;
+                            }
+
+                            // Clear existing layers
+                            if (layers != null)
+                            {
+                                foreach (var layer in layers)
+                                {
+                                    if (layer.Bitmap != null)
+                                    {
+                                        layer.Bitmap.Dispose();
+                                    }
+                                }
+                                layers.Clear();
+                            }
+                            else
+                            {
+                                layers = new List<Layer>();
+                            }
+
+                            // Create new background layer
+                            Layer backgroundLayer = new Layer(width, height, "Background");
+                            using (Graphics bg = Graphics.FromImage(backgroundLayer.Bitmap))
+                            {
+                                bg.Clear(Color.White);
+                            }
+                            layers.Add(backgroundLayer);
+
+                            // Create new image layer
+                            Layer imageLayer = new Layer(width, height, "Layer 1");
+                            using (Graphics g = Graphics.FromImage(imageLayer.Bitmap))
+                            {
+                                g.DrawImage(tempImage, 0, 0, width, height);
+                            }
+                            layers.Add(imageLayer);
+
+                            // Set current layer
+                            currentLayerIndex = 1;
+
+                            // Create new main bitmap
+                            bm = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                            g = Graphics.FromImage(bm);
+
+                            // Reset zoom
+                            zoomFactor = 1.0f;
+
+                            // Update canvas size
+                            canvas.Size = new Size(width, height);
+                            canvas.Image = bm;
+
+                            // Update file info
+                            currentFilePath = openDialog.FileName;
+                            hasUnsavedChanges = false;
+                            UpdateFormTitle();
+
+                            // Reset tools
+                            ResetToolStates();
+
+                            // Update UI
+                            UpdateLayerListUI();
+                            CenterCanvas();
+
+                            // Update scroll area
+                            if (panelCanvas != null)
+                            {
+                                panelCanvas.AutoScrollMinSize = new Size(
+                                    Math.Max(width, panelCanvas.ClientSize.Width),
+                                    Math.Max(height, panelCanvas.ClientSize.Height)
+                                );
+                            }
+
+                            canvas.Invalidate();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error opening file: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenDocument();
+        }
+
+        private void crayonToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentBrushType = BrushType.Crayon;
+            index = 10;
+        }
+        private void brushToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            currentBrushType = BrushType.Solid;
+            index = 10;
         }
 
         private void Fill(Bitmap bm, int x, int y, Color new_clr)

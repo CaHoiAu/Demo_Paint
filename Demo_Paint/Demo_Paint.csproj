@@ -376,5 +376,17 @@
   <ItemGroup>
     <None Include="Resources\curve1.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\crayon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\soft.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\marker.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\caligraph.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

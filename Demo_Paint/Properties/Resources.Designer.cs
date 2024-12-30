@@ -143,9 +143,29 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap caligraph {
+            get {
+                object obj = ResourceManager.GetObject("caligraph", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap copy {
             get {
                 object obj = ResourceManager.GetObject("copy", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap crayon {
+            get {
+                object obj = ResourceManager.GetObject("crayon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -356,6 +376,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap manfier_drawing1 {
             get {
                 object obj = ResourceManager.GetObject("manfier_drawing1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap marker {
+            get {
+                object obj = ResourceManager.GetObject("marker", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -716,6 +746,16 @@ namespace Demo_Paint.Properties {
         internal static System.Drawing.Bitmap rotate21 {
             get {
                 object obj = ResourceManager.GetObject("rotate21", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap soft {
+            get {
+                object obj = ResourceManager.GetObject("soft", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
