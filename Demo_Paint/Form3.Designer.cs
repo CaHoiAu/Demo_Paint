@@ -58,6 +58,7 @@
             // 
             this.cbbFont.Name = "cbbFont";
             resources.ApplyResources(this.cbbFont, "cbbFont");
+            this.cbbFont.Click += new System.EventHandler(this.cbbFont_Click);
             // 
             // toolStripLabel1
             // 

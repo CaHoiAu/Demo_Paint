@@ -147,5 +147,10 @@ namespace Demo_Paint
             }
             TextAlign = "Right";
         }
+
+        private void cbbFont_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

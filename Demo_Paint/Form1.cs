@@ -912,6 +912,7 @@ namespace Demo_Paint
 
                                     // Create arrays to store interpolated points
                                     PointF[] points = new PointF[steps + 1];
+
                                     for (int i = 0; i <= steps; i++)
                                     {
                                         float t = i / (float)steps;
@@ -2678,7 +2679,12 @@ namespace Demo_Paint
                     if (y + font.Height > rect.Bottom) break; // Nếu vượt quá chiều cao, dừng vẽ
 
                     // Xác định hình chữ nhật cho từng dòng
-                    RectangleF lineRect = new RectangleF(rect.X + padding, y, rect.Width - 2 * padding, font.Height);
+                    RectangleF lineRect = new RectangleF(
+                    rect.X + padding,           // Left position with padding
+                    y,                          // Current vertical position
+                    rect.Width - 2 * padding,   // Width (accounting for left & right padding)
+                    font.Height                 // Height based on font size
+                    );
 
                     // Vẽ dòng hiện tại với căn chỉnh
                     g.DrawString(line, font, brush, lineRect, stringFormat);
@@ -4177,8 +4183,8 @@ namespace Demo_Paint
         private void Fill(Bitmap bm, int x, int y, Color new_clr)
         {
             bm = CurrentLayer.Bitmap;
-            Color old_clr=bm.GetPixel(x, y);
-            if (old_clr == new_clr)
+            Color old_clr=bm.GetPixel(x, y); //Lấy màu tại điểm click chuột
+            if (old_clr == new_clr) //nếu cùng màu thì ko làm gì cả
             {
                 return;
             }
@@ -4191,10 +4197,10 @@ namespace Demo_Paint
                 Point pt=(Point)pixel.Pop();
                 if(pt.X>0 && pt.Y>0 && pt.X<bm.Width-1 && pt.Y < bm.Height - 1)
                 {
-                    validate(bm,pixel,pt.X-1,pt.Y,old_clr,new_clr);
-                    validate(bm, pixel, pt.X, pt.Y-1, old_clr, new_clr);
-                    validate(bm, pixel, pt.X + 1, pt.Y, old_clr, new_clr);
-                    validate(bm, pixel, pt.X, pt.Y+1, old_clr, new_clr);
+                    validate(bm,pixel,pt.X-1,pt.Y,old_clr,new_clr);         //trái
+                    validate(bm, pixel, pt.X, pt.Y-1, old_clr, new_clr);    //trên
+                    validate(bm, pixel, pt.X + 1, pt.Y, old_clr, new_clr);  //phải
+                    validate(bm, pixel, pt.X, pt.Y+1, old_clr, new_clr);    //dưới
                 }
             }
         }
