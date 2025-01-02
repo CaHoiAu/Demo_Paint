@@ -39,6 +39,7 @@ namespace Demo_Paint
             this.tooltip = new System.Windows.Forms.ToolTip(this.components);
             this.btnLine = new System.Windows.Forms.Button();
             this.btnText = new System.Windows.Forms.Button();
+            this.btnAddLayer = new ColorPicker.Controls.NickButton();
             this.panel1 = new System.Windows.Forms.Panel();
             this.numUD_Size = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
@@ -112,7 +113,6 @@ namespace Demo_Paint
             this.moveUpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveDownToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteLayerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnAddLayer = new ColorPicker.Controls.NickButton();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUD_Size)).BeginInit();
@@ -192,6 +192,29 @@ namespace Demo_Paint
             this.tooltip.SetToolTip(this.btnText, "Text");
             this.btnText.UseVisualStyleBackColor = true;
             this.btnText.Click += new System.EventHandler(this.btnText_Click);
+            // 
+            // btnAddLayer
+            // 
+            this.btnAddLayer.BackColor = System.Drawing.Color.White;
+            this.btnAddLayer.BackgroundColor = System.Drawing.Color.White;
+            this.btnAddLayer.BorderColor = System.Drawing.Color.Black;
+            this.btnAddLayer.BorderRadius = 30;
+            this.btnAddLayer.BorderSize = 1;
+            this.btnAddLayer.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnAddLayer.FlatAppearance.BorderSize = 0;
+            this.btnAddLayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAddLayer.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAddLayer.ForeColor = System.Drawing.Color.Black;
+            this.btnAddLayer.Location = new System.Drawing.Point(0, 0);
+            this.btnAddLayer.Margin = new System.Windows.Forms.Padding(10);
+            this.btnAddLayer.Name = "btnAddLayer";
+            this.btnAddLayer.Size = new System.Drawing.Size(200, 30);
+            this.btnAddLayer.TabIndex = 0;
+            this.btnAddLayer.Text = "+";
+            this.btnAddLayer.TextColor = System.Drawing.Color.Black;
+            this.tooltip.SetToolTip(this.btnAddLayer, "Create new layer");
+            this.btnAddLayer.UseVisualStyleBackColor = false;
+            this.btnAddLayer.Click += new System.EventHandler(this.btnAddLayer_Click);
             // 
             // panel1
             // 
@@ -328,7 +351,7 @@ namespace Demo_Paint
             this.toolStripBrushes.Location = new System.Drawing.Point(745, 46);
             this.toolStripBrushes.Name = "toolStripBrushes";
             this.toolStripBrushes.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this.toolStripBrushes.Size = new System.Drawing.Size(36, 35);
+            this.toolStripBrushes.Size = new System.Drawing.Size(36, 16);
             this.toolStripBrushes.TabIndex = 31;
             this.toolStripBrushes.Text = "toolStrip2";
             // 
@@ -639,7 +662,7 @@ namespace Demo_Paint
             // brushToolStripMenuItem
             // 
             this.brushToolStripMenuItem.Name = "brushToolStripMenuItem";
-            this.brushToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.brushToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.brushToolStripMenuItem.Text = "Brush";
             this.brushToolStripMenuItem.Click += new System.EventHandler(this.brushToolStripMenuItem_Click);
             // 
@@ -647,7 +670,7 @@ namespace Demo_Paint
             // 
             this.caligraphToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.caligraph;
             this.caligraphToolStripMenuItem.Name = "caligraphToolStripMenuItem";
-            this.caligraphToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.caligraphToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.caligraphToolStripMenuItem.Text = "Caligraph";
             this.caligraphToolStripMenuItem.Click += new System.EventHandler(this.caligraphToolStripMenuItem_Click);
             // 
@@ -655,7 +678,7 @@ namespace Demo_Paint
             // 
             this.crayonToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.crayon;
             this.crayonToolStripMenuItem.Name = "crayonToolStripMenuItem";
-            this.crayonToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.crayonToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.crayonToolStripMenuItem.Text = "Crayon";
             this.crayonToolStripMenuItem.Click += new System.EventHandler(this.crayonToolStripMenuItem_Click);
             // 
@@ -663,7 +686,7 @@ namespace Demo_Paint
             // 
             this.markerToolStripMenuItem.Image = global::Demo_Paint.Properties.Resources.marker;
             this.markerToolStripMenuItem.Name = "markerToolStripMenuItem";
-            this.markerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.markerToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.markerToolStripMenuItem.Text = "Marker";
             this.markerToolStripMenuItem.Click += new System.EventHandler(this.markerToolStripMenuItem_Click);
             // 
@@ -773,7 +796,7 @@ namespace Demo_Paint
             this.btnPentagon.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.btnPentagon.FlatAppearance.BorderSize = 0;
             this.btnPentagon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPentagon.Image = global::Demo_Paint.Properties.Resources.pentagon11;
+            this.btnPentagon.Image = global::Demo_Paint.Properties.Resources.hexagon11;
             this.btnPentagon.Location = new System.Drawing.Point(328, 35);
             this.btnPentagon.Name = "btnPentagon";
             this.btnPentagon.Size = new System.Drawing.Size(25, 25);
@@ -1042,29 +1065,6 @@ namespace Demo_Paint
             this.deleteLayerToolStripMenuItem.Text = "Delete Layer";
             this.deleteLayerToolStripMenuItem.Click += new System.EventHandler(this.deleteLayerToolStripMenuItem_Click);
             // 
-            // btnAddLayer
-            // 
-            this.btnAddLayer.BackColor = System.Drawing.Color.White;
-            this.btnAddLayer.BackgroundColor = System.Drawing.Color.White;
-            this.btnAddLayer.BorderColor = System.Drawing.Color.Black;
-            this.btnAddLayer.BorderRadius = 30;
-            this.btnAddLayer.BorderSize = 1;
-            this.btnAddLayer.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnAddLayer.FlatAppearance.BorderSize = 0;
-            this.btnAddLayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnAddLayer.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddLayer.ForeColor = System.Drawing.Color.Black;
-            this.btnAddLayer.Location = new System.Drawing.Point(0, 0);
-            this.btnAddLayer.Margin = new System.Windows.Forms.Padding(10);
-            this.btnAddLayer.Name = "btnAddLayer";
-            this.btnAddLayer.Size = new System.Drawing.Size(200, 30);
-            this.btnAddLayer.TabIndex = 0;
-            this.btnAddLayer.Text = "+";
-            this.btnAddLayer.TextColor = System.Drawing.Color.Black;
-            this.tooltip.SetToolTip(this.btnAddLayer, "Create new layer");
-            this.btnAddLayer.UseVisualStyleBackColor = false;
-            this.btnAddLayer.Click += new System.EventHandler(this.btnAddLayer_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1079,6 +1079,7 @@ namespace Demo_Paint
             this.Controls.Add(this.btnUndo);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.canvas);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";

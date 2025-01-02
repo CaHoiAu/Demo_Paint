@@ -353,6 +353,16 @@ namespace Demo_Paint.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap hexagon11 {
+            get {
+                object obj = ResourceManager.GetObject("hexagon11", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap kinhlup1 {
             get {
                 object obj = ResourceManager.GetObject("kinhlup1", resourceCulture);
