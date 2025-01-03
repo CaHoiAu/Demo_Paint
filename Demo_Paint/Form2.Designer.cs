@@ -495,6 +495,7 @@
             this.gradientPanel1.Name = "gradientPanel1";
             this.gradientPanel1.Size = new System.Drawing.Size(78, 61);
             this.gradientPanel1.TabIndex = 3;
+            this.gradientPanel1.Click += new System.EventHandler(this.gradientPanel1_Click);
             // 
             // opacitySlider1
             // 

@@ -366,5 +366,10 @@ namespace Demo_Paint
             DialogResult = DialogResult.Cancel;
             Close();
         }
+
+        private void gradientPanel1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

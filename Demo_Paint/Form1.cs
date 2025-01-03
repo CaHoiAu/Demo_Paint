@@ -1429,6 +1429,24 @@ namespace Demo_Paint
                     }
                     isSelecting = false;
                 }
+                else if (isMoving) // Add this condition to handle when selection movement ends
+                {
+                    // Save state before applying changes
+                    SaveDrawingState();
+
+                    // Apply the selection to the current layer
+                    using (Graphics g = Graphics.FromImage(CurrentLayer.Bitmap))
+                    {
+                        g.CompositingMode = CompositingMode.SourceOver;
+                        g.DrawImage(copiedRegionBitmap, selectionRectangle.Location);
+                    }
+
+                    // Clear selection
+                    copiedRegionBitmap = null;
+                    selectionRectangle = Rectangle.Empty;
+                    freeFormPoints.Clear();
+                    selectionToolActive = false;
+                }
                 isMoving = false;
                 canvas.Invalidate();
             }
@@ -2026,6 +2044,7 @@ namespace Demo_Paint
             public Bitmap SelectionBitmap { get; set; }
             public Rectangle SelectionRectangle { get; set; }
             public List<Point> FreeFormPoints { get; set; }
+            public bool IsActive { get; set; }
             public bool IsSelectionActive { get; set; }
             public bool IsMoving { get; set; }
             public Point PastePosition { get; set; }
@@ -2244,25 +2263,49 @@ namespace Demo_Paint
         {
             if (selectionToolActive && selectionUndoStack.Count > 0)
             {
-                // Handle selection undo without saving current state
+                // Save current selection state to redo stack before undoing
+                SelectionState currentState = new SelectionState
+                {
+                    SelectionBitmap = copiedRegionBitmap != null ? new Bitmap(copiedRegionBitmap) : null,
+                    SelectionRectangle = selectionRectangle,
+                    FreeFormPoints = new List<Point>(freeFormPoints),
+                    IsSelectionActive = selectionToolActive,
+                    IsMoving = isMoving,
+                    PastePosition = pastePosition,
+                    CurrentMode = currentMode,
+                    LayerBeforeChange = new Bitmap(CurrentLayer.Bitmap)
+                };
+                selectionRedoStack.Push(currentState);
+
+                // Restore previous state from undo stack
                 SelectionState previousState = selectionUndoStack.Pop();
-                selectionRedoStack.Push(previousState);
                 RestoreSelectionState(previousState);
-                canvas.Invalidate();
             }
             else if (undoStack.Count > 0)
             {
-                // Handle regular drawing undo without saving current state
-                SavedState previousState = undoStack.Pop();
-                redoStack.Push(previousState);
-                RestoreState(previousState);
-                canvas.Invalidate();
-
-                // Only update layer UI if necessary
-                if (HasLayerStructureChanged(previousState))
+                // Save current drawing state to redo stack before undoing
+                List<Layer> currentLayers = new List<Layer>();
+                foreach (var layer in layers)
                 {
-                    UpdateLayerListUI();
+                    Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                    using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
+                    {
+                        gr.Clear(Color.Transparent);
+                        gr.DrawImage(layer.Bitmap, 0, 0);
+                    }
+                    layerCopy.Visible = layer.Visible;
+                    currentLayers.Add(layerCopy);
                 }
+
+                redoStack.Push(new SavedState
+                {
+                    Layers = currentLayers,
+                    TextObjects = new List<TextObject>(textObjects)
+                });
+
+                // Restore previous state from undo stack
+                SavedState previousState = undoStack.Pop();
+                RestoreDrawingState(previousState);
             }
         }
 
@@ -2270,27 +2313,82 @@ namespace Demo_Paint
         {
             if (selectionToolActive && selectionRedoStack.Count > 0)
             {
-                // Handle selection redo without saving current state
+                // Save current selection state to undo stack before redoing
+                SelectionState currentState = new SelectionState
+                {
+                    SelectionBitmap = copiedRegionBitmap != null ? new Bitmap(copiedRegionBitmap) : null,
+                    SelectionRectangle = selectionRectangle,
+                    FreeFormPoints = new List<Point>(freeFormPoints),
+                    IsSelectionActive = selectionToolActive,
+                    IsMoving = isMoving,
+                    PastePosition = pastePosition,
+                    CurrentMode = currentMode,
+                    LayerBeforeChange = new Bitmap(CurrentLayer.Bitmap)
+                };
+                selectionUndoStack.Push(currentState);
+
+                // Restore next state from redo stack
                 SelectionState nextState = selectionRedoStack.Pop();
-                selectionUndoStack.Push(nextState);
                 RestoreSelectionState(nextState);
-                canvas.Invalidate();
             }
             else if (redoStack.Count > 0)
             {
-                // Handle regular drawing redo without saving current state
-                SavedState nextState = redoStack.Pop();
-                undoStack.Push(nextState);
-                RestoreState(nextState);
-                canvas.Invalidate();
-
-                // Only update layer UI if necessary
-                if (HasLayerStructureChanged(nextState))
+                // Save current drawing state to undo stack before redoing
+                List<Layer> currentLayers = new List<Layer>();
+                foreach (var layer in layers)
                 {
-                    UpdateLayerListUI();
+                    Layer layerCopy = new Layer(layer.Bitmap.Width, layer.Bitmap.Height, layer.Name);
+                    using (Graphics gr = Graphics.FromImage(layerCopy.Bitmap))
+                    {
+                        gr.Clear(Color.Transparent);
+                        gr.DrawImage(layer.Bitmap, 0, 0);
+                    }
+                    layerCopy.Visible = layer.Visible;
+                    currentLayers.Add(layerCopy);
                 }
+
+                undoStack.Push(new SavedState
+                {
+                    Layers = currentLayers,
+                    TextObjects = new List<TextObject>(textObjects)
+                });
+
+                // Restore next state from redo stack
+                SavedState nextState = redoStack.Pop();
+                RestoreDrawingState(nextState);
             }
         }
+
+        private void RestoreDrawingState(SavedState state)
+        {
+            // Clear existing layers
+            foreach (var layer in layers)
+            {
+                layer.Bitmap.Dispose();
+            }
+            layers.Clear();
+
+            // Restore layers
+            foreach (var savedLayer in state.Layers)
+            {
+                Layer newLayer = new Layer(savedLayer.Bitmap.Width, savedLayer.Bitmap.Height, savedLayer.Name);
+                using (Graphics g = Graphics.FromImage(newLayer.Bitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.DrawImage(savedLayer.Bitmap, 0, 0);
+                }
+                newLayer.Visible = savedLayer.Visible;
+                layers.Add(newLayer);
+            }
+
+            // Restore text objects
+            textObjects = new List<TextObject>(state.TextObjects);
+
+            // Update UI
+            UpdateLayerListUI();
+            canvas.Invalidate();
+        }
+
         private void btnUndo_Click(object sender, EventArgs e)
         {
             Undo();
@@ -3086,7 +3184,18 @@ namespace Demo_Paint
                     // Use matrix transformation for flipping
                     g.TranslateTransform(flippedBitmap.Width, 0);
                     g.ScaleTransform(-1, 1);
-                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                    using (ImageAttributes ia = new ImageAttributes())
+                    {
+                        ColorMatrix matrix = new ColorMatrix();
+                        matrix.Matrix33 = 1.0f; // Preserve alpha
+                        ia.SetColorMatrix(matrix);
+
+                        g.DrawImage(copiedRegionBitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height,
+                            GraphicsUnit.Pixel,
+                            ia);
+                    }
                 }
 
                 // Update the bitmap
@@ -3144,7 +3253,18 @@ namespace Demo_Paint
                     // Use matrix transformation for flipping
                     g.TranslateTransform(0, flippedBitmap.Height);
                     g.ScaleTransform(1, -1);
-                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                    using (ImageAttributes ia = new ImageAttributes())
+                    {
+                        ColorMatrix matrix = new ColorMatrix();
+                        matrix.Matrix33 = 1.0f; // Preserve alpha
+                        ia.SetColorMatrix(matrix);
+
+                        g.DrawImage(copiedRegionBitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height,
+                            GraphicsUnit.Pixel,
+                            ia);
+                    }
                 }
 
                 // Update the bitmap
@@ -3211,7 +3331,18 @@ namespace Demo_Paint
                     g.TranslateTransform(-oldCenterX, -oldCenterY);
 
                     // Draw the image
-                    g.DrawImage(copiedRegionBitmap, 0, 0);
+                    using (ImageAttributes ia = new ImageAttributes())
+                    {
+                        ColorMatrix matrix = new ColorMatrix();
+                        matrix.Matrix33 = 1.0f; // Preserve alpha
+                        ia.SetColorMatrix(matrix);
+
+                        g.DrawImage(copiedRegionBitmap,
+                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                            0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height,
+                            GraphicsUnit.Pixel,
+                            ia);
+                    }
                 }
 
                 // Update the bitmap
@@ -3235,81 +3366,90 @@ namespace Demo_Paint
         }
         private void RotateRight90()
         {
-            SaveSelectionState();
-            if (selectionToolActive && !selectionRectangle.IsEmpty)
+            try
             {
-                // Create initial copy if it doesn't exist
-                if (copiedRegionBitmap == null)
+                if (selectionToolActive && !selectionRectangle.IsEmpty)
                 {
-                    copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
-                    using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
+                    // Save current state before transformation
+                    SaveSelectionState();
+
+                    // Create initial copy if it doesn't exist
+                    if (copiedRegionBitmap == null)
                     {
-                        g.Clear(Color.Transparent);  // Clear with transparency
-                        if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+                        copiedRegionBitmap = new Bitmap(selectionRectangle.Width, selectionRectangle.Height, PixelFormat.Format32bppArgb);
+                        using (Graphics g = Graphics.FromImage(copiedRegionBitmap))
                         {
-                            // Handle freeform selection
-                            GraphicsPath path = new GraphicsPath();
-                            Point[] translatedPoints = freeFormPoints
-                                .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
-                                .ToArray();
-                            path.AddPolygon(translatedPoints);
-                            g.SetClip(path);
+                            g.Clear(Color.Transparent);  // Clear with transparency
+                            if (currentMode == SelectionMode.FreeForm && freeFormPoints.Count > 2)
+                            {
+                                // Handle freeform selection
+                                GraphicsPath path = new GraphicsPath();
+                                Point[] translatedPoints = freeFormPoints
+                                    .Select(p => new Point(p.X - selectionRectangle.X, p.Y - selectionRectangle.Y))
+                                    .ToArray();
+                                path.AddPolygon(translatedPoints);
+                                g.SetClip(path);
+                            }
+                            g.DrawImage(CurrentLayer.Bitmap,
+                                new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
+                                selectionRectangle,
+                                GraphicsUnit.Pixel);
                         }
-                        g.DrawImage(CurrentLayer.Bitmap,
-                            new Rectangle(0, 0, copiedRegionBitmap.Width, copiedRegionBitmap.Height),
-                            selectionRectangle,
-                            GraphicsUnit.Pixel);
+
+                        // Clear the original area
+                        ClearOriginalArea();
                     }
 
-                    // Clear the original area
-                    ClearOriginalArea();
+                    // Now proceed with rotation
+                    Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width, PixelFormat.Format32bppArgb);
+                    rotatedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
+
+                    using (Graphics g = Graphics.FromImage(rotatedBitmap))
+                    {
+                        g.Clear(Color.Transparent);
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.CompositingMode = CompositingMode.SourceCopy;
+                        g.CompositingQuality = CompositingQuality.HighQuality;
+                        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+
+                        // Calculate center points
+                        float centerX = rotatedBitmap.Width / 2f;
+                        float centerY = rotatedBitmap.Height / 2f;
+                        float oldCenterX = copiedRegionBitmap.Width / 2f;
+                        float oldCenterY = copiedRegionBitmap.Height / 2f;
+
+                        // Apply transformation
+                        g.TranslateTransform(centerX, centerY);
+                        g.RotateTransform(90);
+                        g.TranslateTransform(-oldCenterX, -oldCenterY);
+
+                        // Draw the image
+                        g.DrawImage(copiedRegionBitmap, 0, 0);
+                    }
+
+                    // Update the bitmap
+                    copiedRegionBitmap.Dispose();
+                    copiedRegionBitmap = rotatedBitmap;
+
+                    // Update selection rectangle
+                    Point center = new Point(
+                        selectionRectangle.X + selectionRectangle.Width / 2,
+                        selectionRectangle.Y + selectionRectangle.Height / 2
+                    );
+                    selectionRectangle = new Rectangle(
+                        center.X - rotatedBitmap.Width / 2,
+                        center.Y - rotatedBitmap.Height / 2,
+                        rotatedBitmap.Width,
+                        rotatedBitmap.Height
+                    );
+
+                    canvas.Invalidate();
                 }
-
-                // Create new bitmap with swapped dimensions
-                Bitmap rotatedBitmap = new Bitmap(copiedRegionBitmap.Height, copiedRegionBitmap.Width, PixelFormat.Format32bppArgb);
-                rotatedBitmap.SetResolution(copiedRegionBitmap.HorizontalResolution, copiedRegionBitmap.VerticalResolution);
-
-                using (Graphics g = Graphics.FromImage(rotatedBitmap))
-                {
-                    g.Clear(Color.Transparent);
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    g.CompositingMode = CompositingMode.SourceOver;
-                    g.CompositingQuality = CompositingQuality.HighQuality;
-                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                    g.SmoothingMode = SmoothingMode.HighQuality;
-
-                    // Calculate center points
-                    float centerX = rotatedBitmap.Width / 2f;
-                    float centerY = rotatedBitmap.Height / 2f;
-                    float oldCenterX = copiedRegionBitmap.Width / 2f;
-                    float oldCenterY = copiedRegionBitmap.Height / 2f;
-
-                    // Apply transformation
-                    g.TranslateTransform(centerX, centerY);
-                    g.RotateTransform(90);
-                    g.TranslateTransform(-oldCenterX, -oldCenterY);
-
-                    // Draw the image
-                    g.DrawImage(copiedRegionBitmap, 0, 0);
-                }
-
-                // Update the bitmap
-                copiedRegionBitmap.Dispose();
-                copiedRegionBitmap = rotatedBitmap;
-
-                // Update selection rectangle
-                Point center = new Point(
-                    selectionRectangle.X + selectionRectangle.Width / 2,
-                    selectionRectangle.Y + selectionRectangle.Height / 2
-                );
-                selectionRectangle = new Rectangle(
-                    center.X - rotatedBitmap.Width / 2,
-                    center.Y - rotatedBitmap.Height / 2,
-                    rotatedBitmap.Width,
-                    rotatedBitmap.Height
-                );
-
-                canvas.Invalidate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in RotateRight90: {ex.Message}\nStack Trace: {ex.StackTrace}");
             }
         }
         private void Rotate180()
